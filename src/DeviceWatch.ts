@@ -1,10 +1,13 @@
 /**
  * DeviceWatch detects the moment when the mobile app comes online.
  *
- * It connects to the FeelExchangeCenter (FEC) /pubnub namespace and waits for
- * a `sharing:device_connected` message to arrive on the user's personal room
- * (auto-joined by FEC on connection).  Once detected it fires all registered
- * CONNECT_EVENT callbacks.
+ * Flow:
+ *  1. Fetches a FEC-specific JWT from ControlPlane
+ *     (GET /jslib-api/v1/user/{userId}/fec-token?partner_token=...)
+ *  2. Opens a Socket.IO connection to FeelExchangeCenter /pubnub namespace
+ *     authenticated with that token
+ *  3. Waits for a `sharing:device_connected` message on the user's personal
+ *     room (auto-joined by FEC) and fires all onDeviceConnected() callbacks
  *
  * Replaces the old PubNub-presence approach (subscribe + hereNow polling).
  */
@@ -22,15 +25,32 @@ function emitConnect(): void {
 }
 
 /**
+ * Fetch a FEC-scoped JWT from ControlPlane.
+ * The returned token has payload { sub: userId, partner_id, ab } which is
+ * exactly what FEC's auth middleware expects.
+ */
+async function fetchFecToken(apiUrl: string, userId: string, partnerToken: string): Promise<string> {
+  const url =
+    `${apiUrl}/jslib-api/v1/user/${encodeURIComponent(userId)}/fec-token` +
+    `?partner_token=${encodeURIComponent(partnerToken)}`
+
+  const response = await fetch(url)
+  if (!response.ok) {
+    throw new Error(`Failed to fetch FEC token: ${response.status} ${response.statusText}`)
+  }
+
+  const data = await response.json() as { fec_token: string }
+  if (!data.fec_token) throw new Error('FEC token missing in response')
+  return data.fec_token
+}
+
+/**
  * Initialize DeviceWatch.
  *
- * Opens the FEC Socket.IO connection and listens for the mobile app's
- * `sharing:device_connected` presence message.
- *
- * @param feelAppsToken - ControlPlane partner token (used as JWT for FEC auth)
+ * @param feelAppsToken - ControlPlane partner token (used to obtain a FEC JWT)
  * @param userId        - Current user ID
  */
-export function init(feelAppsToken: string, userId: string): void {
+export async function init(feelAppsToken: string, userId: string): Promise<void> {
   console.log('DeviceWatch.init')
 
   if (appsSettings.partnerToken || appsSettings.userId) {
@@ -42,7 +62,16 @@ export function init(feelAppsToken: string, userId: string): void {
   appsSettings.partnerToken = feelAppsToken
   appsSettings.userId = userId
 
-  const socket = initSocket(appsSettings.fecUrl, feelAppsToken)
+  let fecToken: string
+  try {
+    fecToken = await fetchFecToken(appsSettings.apiUrl, userId, feelAppsToken)
+    console.log('DeviceWatch: FEC token obtained')
+  } catch (err) {
+    console.error('DeviceWatch: failed to obtain FEC token', err)
+    return
+  }
+
+  const socket = initSocket(appsSettings.fecUrl, fecToken)
 
   let handled = false
 
