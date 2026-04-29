@@ -24,26 +24,14 @@ function emitStatus(): void {
 function onMessage(payload: FecInboundMessage): void {
   console.log("Status: onMessage", payload);
   if (payload.message_type === "system:presence") {
-    console.log("Status: system:presence", payload);
-    const d = payload.data as { devices?: unknown };
-    const raw =
-      typeof d.devices === "string" ? JSON.parse(d.devices) : d.devices;
-    currentDevices = Array.isArray(raw) ? raw.map(String) : [];
-    console.log("Status: Feel app connected, devices:", currentDevices);
-    isOnline = true;
-    emitStatus();
-    onDevicesChangedCallback?.(currentDevices);
-    return;
-  }
-
-  if (payload.message_type === "webshare:presence") {
     const d = payload.data as { action?: string };
     if (d.action === "join") {
-      console.log("Status: peer joined room");
+      console.log("Status: Feel app connected");
       isOnline = true;
       emitStatus();
+      onDevicesChangedCallback?.(currentDevices);
     } else if (d.action === "leave") {
-      console.log("Status: peer left room");
+      console.log("Status: Feel app disconnected");
       isOnline = false;
       currentDevices = [];
       emitStatus();

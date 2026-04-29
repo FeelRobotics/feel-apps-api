@@ -5,23 +5,22 @@
  *
  * Room name: `billing.<socket.id>`
  */
-import { getSocket } from '../FecSocket'
+import { getSocket } from "../FecSocket";
 
-let joined = false
+let joined = false;
 
 export function play(): void {
-  if (joined) return
+  if (joined) return;
 
-  let socket
+  let socket;
   try {
-    socket = getSocket()
+    socket = getSocket();
   } catch {
     // Socket not initialised (e.g. initMobile mode) — billing is a no-op
-    return
+    return;
   }
 
-  const channelId = 'billing.' + (socket.id ?? '')
-  console.log('BillingPubnub play(), joining FEC room:', channelId)
-  socket.emit('room:join', channelId)
-  joined = true
+  const channelId = "billing." + (socket.id ?? "");
+  socket.emit("room:join", channelId);
+  joined = true;
 }

@@ -32,9 +32,12 @@ export function init(fecToken: string, userId: string, roomName: string): void {
   socket.on("message", (payload: FecInboundMessage) => {
     if (handled) return;
     if (payload.message_type === "system:presence") {
-      console.log("DeviceWatch: Feel app connected:", payload.message_type);
-      handled = true;
-      emitConnect();
+      const d = payload.data as { action?: string };
+      if (d.action === "join") {
+        console.log("DeviceWatch: Feel app connected");
+        handled = true;
+        emitConnect();
+      }
     }
   });
 
