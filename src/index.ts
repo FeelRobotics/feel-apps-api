@@ -1,7 +1,6 @@
 import * as apps from './apps/Apps'
 import * as subs from './subs/Subs'
 import * as DeviceWatch from './DeviceWatch'
-import { playSubtitle as mobilePlaySubtitle } from './MobileApi'
 import { getSocket, destroySocket } from './FecSocket'
 
 let SUBS_API_URL = 'https://api-subtitles.feel-app.com/api/v1'
@@ -38,18 +37,6 @@ export function init(feelSubsToken: string, fecToken: string, userId: string, ro
 
 function onDevicesChanged(devices: string[]): void {
   subs.devicesChanged(devices)
-}
-
-/**
- * Mobile mode — subtitle events forwarded via postMessage.
- *
- * @param feelSubsToken - Feel Subtitles access token
- */
-export function initMobile(feelSubsToken: string): void {
-  subs.init(
-    { apiUrl: SUBS_API_URL, apptoken: feelSubsToken, clientId: '' },
-    mobilePlaySubtitle,
-  )
 }
 
 /**

@@ -35,8 +35,5 @@ export function playSubtitle(
   RoomConnection.send(percentValue, null, positionMsec, subtitles)
 }
 
-export function getMobileAppLaunchUrl(requestToken: string): string {
-  return 'feelapp://authorize?token=' + encodeURIComponent(requestToken)
-}
 
 export { Status as status, RoomConnection as data }

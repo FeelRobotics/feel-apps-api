@@ -50,7 +50,6 @@ video.addEventListener('pause', () => subs.stop())
 | Mode | Function | Use case |
 |---|---|---|
 | Full | `init()` | Web app with device control + haptic subtitles |
-| Mobile | `initMobile()` | Mobile webview — subtitle events via `postMessage` |
 | Slider | `initSlider()` | Device control only, no subtitle support |
 
 ## API Reference
@@ -59,9 +58,6 @@ video.addEventListener('pause', () => subs.stop())
 
 #### `init(feelSubsToken, fecToken, userId, roomName)`
 Full initialization. Connects to FEC, starts device monitoring, and sets up subtitle playback once a device connects.
-
-#### `initMobile(feelSubsToken)`
-Subtitle-only mode for mobile webviews. Haptic values are forwarded to the native wrapper via `window.parent.postMessage`.
 
 #### `initSlider(fecToken, userId, roomName)`
 Device control without subtitle support.
@@ -79,9 +75,6 @@ Disconnect the socket and reset all state.
 
 #### `apps.playSubtitle(percentValue, positionMsec, subtitles)`
 Send a haptic subtitle event directly to connected devices.
-
-#### `apps.getMobileAppLaunchUrl(requestToken): string`
-Generate a `feelapp://` deep link for mobile app authentication.
 
 #### `apps.status.subscribe(callback)`
 Listen for device connection status changes.

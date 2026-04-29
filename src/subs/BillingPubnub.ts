@@ -16,7 +16,7 @@ export function play(): void {
   try {
     socket = getSocket();
   } catch {
-    // Socket not initialised (e.g. initMobile mode) — billing is a no-op
+    // Socket not initialised — billing is a no-op
     return;
   }
 
