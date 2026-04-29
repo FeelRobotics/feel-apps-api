@@ -4,8 +4,6 @@ import * as DeviceWatch from './DeviceWatch'
 import { playSubtitle as mobilePlaySubtitle } from './MobileApi'
 import { getSocket, destroySocket } from './FecSocket'
 
-// Production:  'https://api.pibds.com/api/v1'
-// Staging:
 let SUBS_API_URL = 'https://api-subtitles.feel-app.com/api/v1'
 
 interface Servers {
@@ -13,31 +11,28 @@ interface Servers {
   subs?: string
 }
 
-/**
- * Override default API server URLs.
- * Call before init() if you need to point at staging/dev environments.
- */
 export function setServers(servers: Servers): void {
   if (servers.apps) apps.setServerUrl(servers.apps)
   if (servers.subs) SUBS_API_URL = servers.subs
 }
 
 /**
- * Full mode — subtitles + mobile app device control via FeelExchangeCenter.
+ * Full mode — subtitles + device control.
  *
- * @param feelSubsToken  - Feel Subtitles (Pibds) access token
- * @param feelAppsToken  - Feel Apps (ControlPlane) access token / FEC JWT
- * @param userId         - Feel Apps user ID
+ * @param feelSubsToken - Feel Subtitles access token
+ * @param fecToken      - FEC JWT with sub claim
+ * @param userId        - Feel Apps user ID
+ * @param roomName      - FEC room name to join
  */
-export function init(feelSubsToken: string, feelAppsToken: string, userId: string): void {
+export function init(feelSubsToken: string, fecToken: string, userId: string, roomName: string): void {
   console.log('feel.init')
 
-  DeviceWatch.init(feelAppsToken, userId)
+  DeviceWatch.init(fecToken, userId, roomName)
+  apps.init(onDevicesChanged)
   DeviceWatch.onDeviceConnected(() => {
     const socket = getSocket()
     const clientId = socket.id ?? ''
     subs.init({ apiUrl: SUBS_API_URL, apptoken: feelSubsToken, clientId }, apps.playSubtitle)
-    apps.init(onDevicesChanged)
   })
 }
 
@@ -46,8 +41,7 @@ function onDevicesChanged(devices: string[]): void {
 }
 
 /**
- * Mobile mode — runs inside the Feel app's embedded webview.
- * Subtitle events are forwarded to the native app via postMessage.
+ * Mobile mode — subtitle events forwarded via postMessage.
  *
  * @param feelSubsToken - Feel Subtitles access token
  */
@@ -59,22 +53,17 @@ export function initMobile(feelSubsToken: string): void {
 }
 
 /**
- * Slider mode — device control only, no subtitle loading.
+ * Slider mode — device control only, no subtitles.
  *
- * @param feelAppsToken - Feel Apps access token / FEC JWT
- * @param userId        - Feel Apps user ID
+ * @param fecToken - FEC JWT with sub claim
+ * @param userId   - Feel Apps user ID
+ * @param roomName - FEC room name to join
  */
-export function initSlider(feelAppsToken: string, userId: string): void {
-  DeviceWatch.init(feelAppsToken, userId)
-  DeviceWatch.onDeviceConnected(() => {
-    apps.init(null)
-  })
+export function initSlider(fecToken: string, userId: string, roomName: string): void {
+  DeviceWatch.init(fecToken, userId, roomName)
+  apps.init(null)
 }
 
-/**
- * Close all connections and release internal resources.
- * Must be called before calling init / initSlider / initMobile again.
- */
 export function destroy(): void {
   apps.destroy()
   destroySocket()

@@ -1,11 +1,11 @@
-import { defineConfig } from 'tsup'
+import { defineConfig } from "tsup";
 
 export default defineConfig({
-  entry: ['src/index.ts'],
-  format: ['esm', 'cjs', 'iife'],
-  globalName: '$feel',
+  entry: ["src/index.ts"],
+  format: ["esm", "cjs", "iife"],
+  globalName: "$feel",
   dts: true,
   sourcemap: true,
   clean: true,
-  target: 'es2017',
-})
+  target: "es2017",
+});

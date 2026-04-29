@@ -1,4 +1,4 @@
-import type { SubtitleEntry, DrsInfo } from '../types'
+import type { SubtitleEntry } from '../types'
 import * as Status from './Status'
 import * as RoomConnection from './PubnubRoomConnection'
 import * as SubsSubs from '../subs/Subs'
@@ -7,16 +7,6 @@ import { getSocket } from '../FecSocket'
 
 type DevicesChangedCallback = (devices: string[]) => void
 
-async function getUserConnectionInfo(): Promise<DrsInfo> {
-  const url =
-    `${appsSettings.apiUrl}/internal-api/v1/user/${appsSettings.userId}/drs` +
-    `?partner_token=${appsSettings.partnerToken}`
-
-  const response = await fetch(url)
-  if (!response.ok) throw new Error(`DRS request failed: ${response.statusText}`)
-  return response.json() as Promise<DrsInfo>
-}
-
 export function setServerUrl(url: string): void {
   appsSettings.apiUrl = url
 }
@@ -24,25 +14,17 @@ export function setServerUrl(url: string): void {
 export function init(onDevicesChanged: DevicesChangedCallback | null): void {
   console.log('App.init')
 
-  // Reuse the FEC socket opened by DeviceWatch
   const socket = getSocket()
-
   SubsSubs.setClientId(socket.id ?? '')
-  Status.init(socket, appsSettings, onDevicesChanged)
-
-  getUserConnectionInfo()
-    .then((drsInfo) => {
-      const drsRoomName = drsInfo.drs_room.drs_id
-      RoomConnection.connect(socket, drsRoomName)
-    })
-    .catch((err) => console.log(err))
+  Status.init(socket, onDevicesChanged)
+  RoomConnection.connect(socket, appsSettings.roomName)
 }
 
 export function destroy(): void {
   RoomConnection.disconnect()
   Status.disconnect()
-  appsSettings.partnerToken = ''
   appsSettings.userId = ''
+  appsSettings.roomName = ''
 }
 
 export function playSubtitle(

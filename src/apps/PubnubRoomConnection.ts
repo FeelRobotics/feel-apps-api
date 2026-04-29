@@ -1,116 +1,108 @@
 /**
  * RoomConnection manages the DRS (Device Room Session) Socket.IO room on FEC.
  *
- * Replaces PubNub channel subscribe/publish with:
  *  - `room:join`       to join the DRS room
  *  - `room:leave`      to leave it on disconnect
- *  - emit `message`    with message_type `room:device_data` (v2) to broadcast device values
+ *  - emit `message`    with message_type `device:position` to send haptic intensity
  *  - emit `message`    with message_type `room:play` / `room:stop` (v3) for subtitle chunks
- *  - listen `message`  for incoming `room:device_data` from remote peers
+ *  - listen `message`  for incoming `device:position` from remote peers
  *  - listen `message`  with message_type `webshare:presence` for room join/leave events
  */
-import type { Socket } from 'socket.io-client'
-import type { SubtitleEntry, FecInboundMessage } from '../types'
-import * as MessageQueue from './PubnubMessageQueue'
-import { filterIntermediateValues } from './PercentArrayFilter'
-import * as SubtitleChunkPlayer from './SubtitleChunkPlayer'
+import type { Socket } from "socket.io-client";
+import type { SubtitleEntry, FecInboundMessage } from "../types";
+import * as MessageQueue from "./PubnubMessageQueue";
+import { filterIntermediateValues } from "./PercentArrayFilter";
+import * as SubtitleChunkPlayer from "./SubtitleChunkPlayer";
+import appsSettings from "./AppsSettings";
 
-type DataCallback = (percent: number, deviceName?: string) => void
-const dataCallbacks: DataCallback[] = []
+type DataCallback = (percent: number, deviceName?: string) => void;
+const dataCallbacks: DataCallback[] = [];
 
-let _socket: Socket | null = null
-let roomId: string | null = null
-let hereNowTimeout: ReturnType<typeof setTimeout> | null = null
+let _socket: Socket | null = null;
+let roomId: string | null = null;
+let hereNowTimeout: ReturnType<typeof setTimeout> | null = null;
 
 // Default to v3 (subtitle-chunk protocol) — FEC supports it natively.
 // Set to 2 to fall back to per-value v2 messages.
-let clientMessageHandlerVersion = 3
+let clientMessageHandlerVersion = 3;
 
 function emitData(percent: number, deviceName?: string): void {
-  dataCallbacks.forEach((cb) => cb(percent, deviceName))
+  dataCallbacks.forEach((cb) => cb(percent, deviceName));
 }
 
 function onMessage(payload: FecInboundMessage): void {
-  if (!roomId) return
+  if (!roomId) return;
 
-  const { message_type, data } = payload
+  const { message_type, data } = payload;
 
-  if (message_type === 'room:device_data') {
-    // data.from is appended by FEC (sender's user.sub)
-    const d = data as { src?: string; percents?: number[]; values?: { to: string; value: number }[]; from?: string; ver?: number }
-    if (d.src === _socket?.id) return // ignore own messages
-
-    if (Array.isArray(d.values)) {
-      for (const val of d.values) {
-        emitData(val.value, d.from)
-      }
-    } else if (Array.isArray(d.percents)) {
-      for (const p of d.percents) {
-        emitData(p)
-      }
+  if (message_type === "device:position") {
+    const d = data as {
+      target?: string;
+      what?: string;
+      payload?: number;
+      from?: string;
+    };
+    if (d.what === "device_percent" && typeof d.payload === "number") {
+      emitData(d.payload, d.from);
     }
-    return
+    return;
   }
 
-  if (message_type === 'webshare:presence') {
+  if (message_type === "webshare:presence") {
     // A peer joined or left the DRS room
-    const d = data as { action?: string }
-    if (d.action === 'join') {
-      SubtitleChunkPlayer.reset()
+    const d = data as { action?: string };
+    if (d.action === "join") {
+      SubtitleChunkPlayer.reset();
     }
-    return
+    return;
   }
 }
 
 function sendQueue(): void {
-  if (!_socket || !roomId) return
+  if (!_socket || !roomId) return;
 
-  MessageQueue.startSending(roomId)
-  const messages = MessageQueue.getMessages(roomId)
-  const filtered = filterIntermediateValues(messages)
+  MessageQueue.startSending(roomId);
+  const messages = MessageQueue.getMessages(roomId);
+  const filtered = filterIntermediateValues(messages);
+  MessageQueue.reset(roomId);
 
-  const data = {
-    room: roomId,
-    src: _socket.id ?? '',
-    percents: filtered.map((m) => m.value),
-    values: filtered.map((m) => ({ to: m.to ?? '', value: m.value })),
-    ver: 2 as const,
+  const last = filtered[filtered.length - 1];
+  if (!last) {
+    MessageQueue.endSending(roomId);
+    return;
   }
 
-  console.log('Sending room:device_data to FEC:', data)
-  MessageQueue.reset(roomId)
-
-  const roomSnapshot = roomId
-  _socket.emit(
-    'message',
-    { room: roomSnapshot, message_type: 'room:device_data', data },
-    () => {
-      MessageQueue.endSending(roomSnapshot)
-      if (!MessageQueue.isEmpty(roomSnapshot)) {
-        sendQueue()
-      }
+  const roomSnapshot = roomId;
+  const msg = {
+    message_type: "device:position",
+    data: {
+      target: last.to || appsSettings.userId,
+      what: "device_percent",
+      payload: last.value,
     },
-  )
+  };
+  console.log("[RoomConnection] sending device:position", msg);
+  _socket.emit("message", msg, () => {
+    MessageQueue.endSending(roomSnapshot);
+    if (!MessageQueue.isEmpty(roomSnapshot)) {
+      sendQueue();
+    }
+  });
 }
 
 export function connect(socket: Socket, drsRoomName: string): void {
-  _socket = socket
-  roomId = drsRoomName
-
-  socket.emit('room:join', drsRoomName, () => {
-    console.log('Joined FEC room:', drsRoomName)
-  })
-
-  socket.on('message', onMessage)
-  console.log('RoomConnection: listening on room', drsRoomName)
+  _socket = socket;
+  roomId = drsRoomName;
+  socket.on("message", onMessage);
 }
 
 export function disconnect(): void {
-  if (!_socket || !roomId) return
-  _socket.emit('room:leave', roomId)
-  _socket.off('message', onMessage)
-  if (hereNowTimeout) clearTimeout(hereNowTimeout)
-  roomId = null
+  if (!_socket || !roomId) return;
+  _socket.emit("room:leave", { room_name: roomId });
+  _socket.off("message", onMessage);
+  if (hereNowTimeout) clearTimeout(hereNowTimeout);
+  roomId = null;
+  SubtitleChunkPlayer.reset();
 }
 
 export function send(
@@ -119,27 +111,33 @@ export function send(
   positionMsec: number,
   subtitles: SubtitleEntry[],
 ): void {
-  if (!_socket || !roomId) return
+  if (!_socket || !roomId) {
+    console.warn("[RoomConnection] send called but socket/room not ready", {
+      socket: !!_socket,
+      roomId,
+    });
+    return;
+  }
 
   if (subtitles && clientMessageHandlerVersion >= 3) {
-    SubtitleChunkPlayer.play(positionMsec, subtitles, _socket, roomId)
+    SubtitleChunkPlayer.play(positionMsec, subtitles, _socket, roomId);
   } else {
     const value = {
       value: percentValue,
-      to: deviceId ?? '',
-    }
-    MessageQueue.push(roomId, value)
+      to: deviceId ?? "",
+    };
+    MessageQueue.push(roomId, value);
     if (!MessageQueue.isSendingInProgress(roomId)) {
-      sendQueue()
+      sendQueue();
     }
   }
 }
 
 export function subscribe(callback: DataCallback): void {
-  dataCallbacks.push(callback)
+  dataCallbacks.push(callback);
 }
 
 export function unsubscribe(callback: DataCallback): void {
-  const idx = dataCallbacks.indexOf(callback)
-  if (idx !== -1) dataCallbacks.splice(idx, 1)
+  const idx = dataCallbacks.indexOf(callback);
+  if (idx !== -1) dataCallbacks.splice(idx, 1);
 }

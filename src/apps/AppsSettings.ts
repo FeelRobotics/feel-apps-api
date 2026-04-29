@@ -1,35 +1,41 @@
-import type { AppsSettingsData } from '../types'
+import type { AppsSettingsData } from "../types";
 
 const settingsProd: AppsSettingsData = {
-  apiUrl: 'https://api.feel-app.com',
-  subtitlesUrl: 'https://api.pibds.com/api/v1',
-  partnerToken: '',
-  userId: '',
-  // TODO: confirm production FEC URL
-  fecUrl: 'https://fec.feel-app.com',
-}
+  apiUrl: "https://api.feel-app.com",
+  subtitlesUrl: "https://api.pibds.com/api/v1",
+  partnerToken: "",
+  userId: "",
+  fecUrl: "https://fec.feelme.com",
+  roomName: "",
+};
 
 const settingsStaging: AppsSettingsData = {
-  apiUrl: 'https://stg-api.feel-app.com',
-  subtitlesUrl: 'https://api-subtitles.feel-app.com/api/v1',
-  partnerToken: '',
-  userId: '',
-  // TODO: confirm staging FEC URL
-  fecUrl: 'https://stg-fec.feel-app.com',
-}
+  apiUrl: "https://stg-api.feel-app.com",
+  subtitlesUrl: "https://api-subtitles.feel-app.com/api/v1",
+  partnerToken: "",
+  userId: "",
+  fecUrl: "https://fec-stg.feelme.com",
+  roomName: "",
+};
 
 const settingsDev: AppsSettingsData = {
-  apiUrl: 'http://0.0.0.0:5000',
-  subtitlesUrl: '',
-  partnerToken: '',
-  userId: '',
-  fecUrl: 'http://0.0.0.0:8000',
-}
+  apiUrl: "https://api.feel-app.com",
+  subtitlesUrl: "https://api.pibds.com/api/v1",
+  partnerToken: "",
+  userId: "",
+  fecUrl: "192.168.6.243:8000",
+  roomName: "",
+};
 
-// Change to 'staging' or 'dev' for non-production environments
-const env: 'prod' | 'staging' | 'dev' = ('prod' as 'prod' | 'staging' | 'dev')
+// Controlled by the FEEL_ENV build-time variable.
+// Set it when building: FEEL_ENV=staging npm run build
+const env = (process.env.FEEL_ENV ?? "staging") as "prod" | "staging" | "dev"; // TODO: revert default to 'prod'
 
 const settings: AppsSettingsData =
-  env === 'dev' ? settingsDev : env === 'staging' ? settingsStaging : settingsProd
+  env === "dev"
+    ? settingsDev
+    : env === "staging"
+      ? settingsStaging
+      : settingsProd;
 
-export default settings
+export default settings;

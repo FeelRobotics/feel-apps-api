@@ -6,6 +6,7 @@ export interface AppsSettingsData {
   partnerToken: string
   userId: string
   fecUrl: string
+  roomName: string
 }
 
 export interface SubsSettings {
