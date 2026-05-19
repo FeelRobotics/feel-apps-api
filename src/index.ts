@@ -1,9 +1,9 @@
-import * as apps from './apps/Apps';
-import * as DeviceWatch from './DeviceWatch';
-import { destroySocket, getSocket } from './FecSocket';
-import * as subs from './subs/Subs';
+import * as apps from "./apps/Apps";
+import * as DeviceWatch from "./DeviceWatch";
+import { destroySocket, getSocket } from "./FecSocket";
+import * as subs from "./subs/Subs";
 
-let SUBS_API_URL = 'https://api-subtitles.feel-app.com/api/v1';
+let subsApiUrl = "https://api-subtitles.feel-app.com/api/v1";
 
 interface Servers {
   apps?: string;
@@ -12,7 +12,7 @@ interface Servers {
 
 export function setServers(servers: Servers): void {
   if (servers.apps) apps.setServerUrl(servers.apps);
-  if (servers.subs) SUBS_API_URL = servers.subs;
+  if (servers.subs) subsApiUrl = servers.subs;
 }
 
 /**
@@ -29,15 +29,15 @@ export function init(
   userId: string,
   roomName: string,
 ): void {
-  console.log('feel.init');
+  console.log("feel.init");
 
   DeviceWatch.init(fecToken, userId, roomName);
   apps.init(onDevicesChanged);
   DeviceWatch.onDeviceConnected(() => {
     const socket = getSocket();
-    const clientId = socket.id ?? '';
+    const clientId = socket.id ?? "";
     subs.init(
-      { apiUrl: SUBS_API_URL, apptoken: feelSubsToken, clientId },
+      { apiUrl: subsApiUrl, apptoken: feelSubsToken, clientId },
       apps.playSubtitle,
     );
   });
