@@ -1,6 +1,6 @@
-import type { FecInboundMessage } from "./types";
-import appsSettings from "./apps/AppsSettings";
-import { initSocket } from "./FecSocket";
+import appsSettings from './apps/AppsSettings';
+import { initSocket } from './FecSocket';
+import type { FecInboundMessage } from './types';
 
 type ConnectCallback = () => void;
 const connectCallbacks: ConnectCallback[] = [];
@@ -8,7 +8,9 @@ let deviceWasConnected = false;
 
 function emitConnect(): void {
   deviceWasConnected = true;
-  connectCallbacks.forEach((cb) => cb());
+  connectCallbacks.forEach((cb) => {
+    cb();
+  });
 }
 
 /**
@@ -18,7 +20,7 @@ function emitConnect(): void {
 export function init(fecToken: string, userId: string, roomName: string): void {
   if (appsSettings.userId) {
     throw new Error(
-      "Error: $feel library has been already initialized. Please call $feel.destroy() before initializing it again.",
+      'Error: $feel library has been already initialized. Please call $feel.destroy() before initializing it again.',
     );
   }
 
@@ -29,20 +31,20 @@ export function init(fecToken: string, userId: string, roomName: string): void {
 
   let handled = false;
 
-  socket.on("message", (payload: FecInboundMessage) => {
+  socket.on('message', (payload: FecInboundMessage) => {
     if (handled) return;
-    if (payload.message_type === "system:presence") {
+    if (payload.message_type === 'system:presence') {
       const d = payload.data as { action?: string };
-      if (d.action === "join") {
-        console.log("DeviceWatch: Feel app connected");
+      if (d.action === 'join') {
+        console.log('DeviceWatch: Feel app connected');
         handled = true;
         emitConnect();
       }
     }
   });
 
-  socket.on("connect", () => {
-    console.log("DeviceWatch: FEC socket connected as user", userId);
+  socket.on('connect', () => {
+    console.log('DeviceWatch: FEC socket connected as user', userId);
   });
 }
 

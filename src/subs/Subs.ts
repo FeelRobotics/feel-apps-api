@@ -1,11 +1,11 @@
-import type { SubtitleEntry, SubsSettings } from "../types";
-import * as PlayerLogic from "./PlayerLogic";
-import type { SubtitleCallback } from "./PlayerLogic";
-import * as Loader from "./Loader";
-import * as Logger from "./Logger";
-import * as Parser from "./Parser";
-import * as BillingPubnub from "./BillingPubnub";
-import * as DeviceWatch from "../DeviceWatch";
+import * as DeviceWatch from '../DeviceWatch';
+import type { SubsSettings, SubtitleEntry } from '../types';
+import * as BillingPubnub from './BillingPubnub';
+import * as Loader from './Loader';
+import * as Logger from './Logger';
+import * as Parser from './Parser';
+import type { SubtitleCallback } from './PlayerLogic';
+import * as PlayerLogic from './PlayerLogic';
 
 type SubtitleEventCallback = (percentValue: number) => void;
 type PlaySubtitleFn = (
@@ -25,7 +25,9 @@ let previousPos = 0;
 const SEEK_DISTANCE = 2.0; // seconds
 
 function emitSubtitleEvent(percentValue: number): void {
-  subtitleCallbacks.forEach((cb) => cb(percentValue));
+  subtitleCallbacks.forEach((cb) => {
+    cb(percentValue);
+  });
 }
 
 const subtitleCallback: SubtitleCallback = (
@@ -56,7 +58,7 @@ function handleVideoSeekEvent(currentPosSec: number): boolean {
 
 function checkInitialized(): void {
   if (!initialized) {
-    throw new Error("Please call $feel.init before loading/playing subtitles");
+    throw new Error('Please call $feel.init before loading/playing subtitles');
   }
 }
 
@@ -109,7 +111,7 @@ export async function load(
   videoId: string,
   subtitlesId: number | string,
   externalUserId: string | null,
-  channel = "",
+  channel = '',
 ): Promise<void> {
   const doLoad = async () => {
     checkInitialized();
@@ -143,7 +145,7 @@ export function init(
   settings: SubsSettings,
   onPlaySubtitle: PlaySubtitleFn,
 ): void {
-  console.log("Subs.init");
+  console.log('Subs.init');
   Loader.init(settings);
   Logger.init(settings);
   onSubtitle = onPlaySubtitle;

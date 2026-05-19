@@ -5,14 +5,14 @@
  *
  * Room name: `billing.<socket.id>`
  */
-import { getSocket } from "../FecSocket";
+import { getSocket } from '../FecSocket';
 
 let joined = false;
 
 export function play(): void {
   if (joined) return;
 
-  let socket;
+  let socket: ReturnType<typeof getSocket>;
   try {
     socket = getSocket();
   } catch {
@@ -20,7 +20,7 @@ export function play(): void {
     return;
   }
 
-  const channelId = "billing." + (socket.id ?? "");
-  socket.emit("room:join", channelId);
+  const channelId = `billing.${socket.id ?? ''}`;
+  socket.emit('room:join', channelId);
   joined = true;
 }

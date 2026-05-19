@@ -1,18 +1,18 @@
-import * as apps from './apps/Apps'
-import * as subs from './subs/Subs'
-import * as DeviceWatch from './DeviceWatch'
-import { getSocket, destroySocket } from './FecSocket'
+import * as apps from './apps/Apps';
+import * as DeviceWatch from './DeviceWatch';
+import { destroySocket, getSocket } from './FecSocket';
+import * as subs from './subs/Subs';
 
-let SUBS_API_URL = 'https://api-subtitles.feel-app.com/api/v1'
+let SUBS_API_URL = 'https://api-subtitles.feel-app.com/api/v1';
 
 interface Servers {
-  apps?: string
-  subs?: string
+  apps?: string;
+  subs?: string;
 }
 
 export function setServers(servers: Servers): void {
-  if (servers.apps) apps.setServerUrl(servers.apps)
-  if (servers.subs) SUBS_API_URL = servers.subs
+  if (servers.apps) apps.setServerUrl(servers.apps);
+  if (servers.subs) SUBS_API_URL = servers.subs;
 }
 
 /**
@@ -23,20 +23,28 @@ export function setServers(servers: Servers): void {
  * @param userId        - Feel Apps user ID
  * @param roomName      - FEC room name to join
  */
-export function init(feelSubsToken: string, fecToken: string, userId: string, roomName: string): void {
-  console.log('feel.init')
+export function init(
+  feelSubsToken: string,
+  fecToken: string,
+  userId: string,
+  roomName: string,
+): void {
+  console.log('feel.init');
 
-  DeviceWatch.init(fecToken, userId, roomName)
-  apps.init(onDevicesChanged)
+  DeviceWatch.init(fecToken, userId, roomName);
+  apps.init(onDevicesChanged);
   DeviceWatch.onDeviceConnected(() => {
-    const socket = getSocket()
-    const clientId = socket.id ?? ''
-    subs.init({ apiUrl: SUBS_API_URL, apptoken: feelSubsToken, clientId }, apps.playSubtitle)
-  })
+    const socket = getSocket();
+    const clientId = socket.id ?? '';
+    subs.init(
+      { apiUrl: SUBS_API_URL, apptoken: feelSubsToken, clientId },
+      apps.playSubtitle,
+    );
+  });
 }
 
 function onDevicesChanged(devices: string[]): void {
-  subs.devicesChanged(devices)
+  subs.devicesChanged(devices);
 }
 
 /**
@@ -46,14 +54,18 @@ function onDevicesChanged(devices: string[]): void {
  * @param userId   - Feel Apps user ID
  * @param roomName - FEC room name to join
  */
-export function initSlider(fecToken: string, userId: string, roomName: string): void {
-  DeviceWatch.init(fecToken, userId, roomName)
-  apps.init(null)
+export function initSlider(
+  fecToken: string,
+  userId: string,
+  roomName: string,
+): void {
+  DeviceWatch.init(fecToken, userId, roomName);
+  apps.init(null);
 }
 
 export function destroy(): void {
-  apps.destroy()
-  destroySocket()
+  apps.destroy();
+  destroySocket();
 }
 
-export { apps, subs }
+export { apps, subs };

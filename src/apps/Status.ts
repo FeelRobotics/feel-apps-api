@@ -1,5 +1,5 @@
-import type { Socket } from "socket.io-client";
-import type { DeviceStatusEvent, FecInboundMessage } from "../types";
+import type { Socket } from 'socket.io-client';
+import type { DeviceStatusEvent, FecInboundMessage } from '../types';
 
 type StatusCallback = (status: DeviceStatusEvent) => void;
 type DevicesChangedCallback = (devices: string[]) => void;
@@ -18,20 +18,22 @@ function emitStatus(): void {
     devices: currentDevices,
     deviceDescriptions: [],
   };
-  statusCallbacks.forEach((cb) => cb(event));
+  statusCallbacks.forEach((cb) => {
+    cb(event);
+  });
 }
 
 function onMessage(payload: FecInboundMessage): void {
-  console.log("Status: onMessage", payload);
-  if (payload.message_type === "system:presence") {
+  console.log('Status: onMessage', payload);
+  if (payload.message_type === 'system:presence') {
     const d = payload.data as { action?: string };
-    if (d.action === "join") {
-      console.log("Status: Feel app connected");
+    if (d.action === 'join') {
+      console.log('Status: Feel app connected');
       isOnline = true;
       emitStatus();
       onDevicesChangedCallback?.(currentDevices);
-    } else if (d.action === "leave") {
-      console.log("Status: Feel app disconnected");
+    } else if (d.action === 'leave') {
+      console.log('Status: Feel app disconnected');
       isOnline = false;
       currentDevices = [];
       emitStatus();
@@ -51,7 +53,7 @@ export function unsubscribe(callback: StatusCallback): void {
 
 export function disconnect(): void {
   if (_socket) {
-    _socket.off("message", onMessage);
+    _socket.off('message', onMessage);
     _socket = null;
   }
 }
@@ -67,5 +69,5 @@ export function init(
   currentDevices = [];
   emitStatus();
 
-  socket.on("message", onMessage);
+  socket.on('message', onMessage);
 }

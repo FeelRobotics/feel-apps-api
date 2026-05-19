@@ -1,4 +1,4 @@
-import type { SubtitleMap } from '../types'
+import type { SubtitleMap } from '../types';
 
 /**
  * Parse a subtitle string into a subtitle map.
@@ -10,6 +10,6 @@ import type { SubtitleMap } from '../types'
 export function parse(subtitleString: string): SubtitleMap {
   const corrected = subtitleString
     .replace(/\s/g, '')
-    .replace(/(['"])?([a-zA-Z0-9_.]+)(['"])?:/g, '"$2": ')
-  return JSON.parse(corrected) as SubtitleMap
+    .replace(/(['"])?([a-zA-Z0-9_.]+)(['"])?:/g, '"$2": ');
+  return JSON.parse(corrected) as SubtitleMap;
 }
