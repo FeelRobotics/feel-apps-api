@@ -18,8 +18,12 @@ module.exports = {
   collectCoverageFrom: [
     'src/subs/Parser.ts',
     'src/subs/PlayerLogic.ts',
+    'src/subs/Loader.ts',
+    'src/subs/Logger.ts',
+    'src/subs/Subs.ts',
     'src/apps/PercentArrayFilter.ts',
     'src/apps/SubtitleChunkUtils.ts',
     'src/apps/PubnubMessageQueue.ts',
+    'src/apps/SubtitleChunkPlayer.ts',
   ],
 };
