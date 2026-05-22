@@ -1,8 +1,8 @@
 {
-  "name": "feel-apps-api",
-  "version": "1.2.1",
+  "name": "@feelrobotics/feel-apps-api",
+  "version": "1.0.0",
   "description": "Feel Apps JavaScript API",
-  "author": "FeelRobotics",
+  "author": "feelrobotics",
   "license": "MIT",
   "type": "module",
   "main": "dist/index.mjs",
