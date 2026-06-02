@@ -3,7 +3,6 @@
 export interface AppsSettingsData {
   apiUrl: string;
   subtitlesUrl: string;
-  partnerToken: string;
   userId: string;
   fecUrl: string;
   roomName: string;
@@ -40,7 +39,7 @@ export interface DeviceStatusEvent {
 export interface SubtitleChunkMessage {
   src: string;
   subtitles: SubtitleEntry[];
-  type: 'play' | 'stop';
+  type: "play" | "stop";
   serverTime: number;
   ver: 3;
 }
