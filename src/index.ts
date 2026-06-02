@@ -35,7 +35,7 @@ export function init(
   apps.init(onDevicesChanged);
   DeviceWatch.onDeviceConnected(() => {
     const socket = getSocket();
-    const clientId = socket.id ?? "";
+    const clientId = socket.id ?? '';
     subs.init(
       { apiUrl: subsApiUrl, apptoken: feelSubsToken, clientId },
       apps.playSubtitle,
