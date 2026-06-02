@@ -29,7 +29,7 @@ export function init(
   userId: string,
   roomName: string,
 ): void {
-  console.log("feel.init");
+  console.log('feel.init');
 
   DeviceWatch.init(fecToken, userId, roomName);
   apps.init(onDevicesChanged);
