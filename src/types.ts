@@ -2,7 +2,6 @@
 
 export interface AppsSettingsData {
   apiUrl: string;
-  subtitlesUrl: string;
   userId: string;
   fecUrl: string;
   roomName: string;
