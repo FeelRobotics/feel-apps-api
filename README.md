@@ -9,7 +9,7 @@ JavaScript/TypeScript library for real-time haptic feedback and device control i
 ## Installation
 
 ```bash
-npm install feel-apps-api
+npm install @feelrobotics/feel-apps-api
 ```
 
 ## Build
@@ -20,18 +20,16 @@ npm run build
 
 The library outputs ESM, CommonJS, and IIFE bundles. The IIFE global is `$feel`.
 
-Set the target environment at build time via the `FEEL_ENV` environment variable:
-
-| Value | API | Subtitles | FEC |
-|---|---|---|---|
-| `prod` | api.feel-app.com | api.pibds.com | fec.feelme.com |
-| `staging` *(default)* | stg-api.feel-app.com | api-subtitles.feel-app.com | fec-stg.feelme.com |
-| `dev` | api.feel-app.com | api.pibds.com | 192.168.6.243:8000 |
+| Endpoint | URL |
+|---|---|
+| API | api.feel-app.com |
+| Subtitles | api.pibds.com |
+| FEC | fec.feelme.com |
 
 ## Quick Start
 
 ```ts
-import { init, subs } from 'feel-apps-api'
+import { init, subs } from '@feelrobotics/feel-apps-api'
 
 // Initialize with all tokens
 await init(feelSubsToken, fecToken, userId, roomName)
