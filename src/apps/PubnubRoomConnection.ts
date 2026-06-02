@@ -20,7 +20,6 @@ const dataCallbacks: DataCallback[] = [];
 
 let _socket: Socket | null = null;
 let roomId: string | null = null;
-const hereNowTimeout: ReturnType<typeof setTimeout> | null = null;
 
 // Default to v3 (subtitle-chunk protocol) — FEC supports it natively.
 const clientMessageHandlerVersion = 3;
@@ -101,7 +100,6 @@ export function disconnect(): void {
   if (!_socket || !roomId) return;
   _socket.emit("room:leave", { room_name: roomId });
   _socket.off("message", onMessage);
-  if (hereNowTimeout) clearTimeout(hereNowTimeout);
   roomId = null;
   SubtitleChunkPlayer.reset();
 }
