@@ -8,12 +8,12 @@
  *  - listen `message`  for incoming `device:position` from remote peers
  *  - listen `message`  with message_type `webshare:presence` for room join/leave events
  */
-import type { Socket } from 'socket.io-client';
-import type { FecInboundMessage, SubtitleEntry } from '../types';
-import appsSettings from './AppsSettings';
-import { filterIntermediateValues } from './PercentArrayFilter';
-import * as MessageQueue from './PubnubMessageQueue';
-import * as SubtitleChunkPlayer from './SubtitleChunkPlayer';
+import type { Socket } from "socket.io-client";
+import type { FecInboundMessage, SubtitleEntry } from "../types";
+import appsSettings from "./AppsSettings";
+import { filterIntermediateValues } from "./PercentArrayFilter";
+import * as MessageQueue from "./PubnubMessageQueue";
+import * as SubtitleChunkPlayer from "./SubtitleChunkPlayer";
 
 type DataCallback = (percent: number, deviceName?: string) => void;
 const dataCallbacks: DataCallback[] = [];
@@ -23,7 +23,6 @@ let roomId: string | null = null;
 const hereNowTimeout: ReturnType<typeof setTimeout> | null = null;
 
 // Default to v3 (subtitle-chunk protocol) — FEC supports it natively.
-// Set to 2 to fall back to per-value v2 messages.
 const clientMessageHandlerVersion = 3;
 
 function emitData(percent: number, deviceName?: string): void {
@@ -37,23 +36,23 @@ function onMessage(payload: FecInboundMessage): void {
 
   const { message_type, data } = payload;
 
-  if (message_type === 'device:position') {
+  if (message_type === "device:position") {
     const d = data as {
       target?: string;
       what?: string;
       payload?: number;
       from?: string;
     };
-    if (d.what === 'device_percent' && typeof d.payload === 'number') {
+    if (d.what === "device_percent" && typeof d.payload === "number") {
       emitData(d.payload, d.from);
     }
     return;
   }
 
-  if (message_type === 'webshare:presence') {
+  if (message_type === "webshare:presence") {
     // A peer joined or left the DRS room
     const d = data as { action?: string };
-    if (d.action === 'join') {
+    if (d.action === "join") {
       SubtitleChunkPlayer.reset();
     }
     return;
@@ -76,15 +75,15 @@ function sendQueue(): void {
 
   const roomSnapshot = roomId;
   const msg = {
-    message_type: 'device:position',
+    message_type: "device:position",
     data: {
       target: last.to || appsSettings.userId,
-      what: 'device_percent',
+      what: "device_percent",
       payload: last.value,
     },
   };
-  console.log('[RoomConnection] sending device:position', msg);
-  _socket.emit('message', msg, () => {
+  console.log("[RoomConnection] sending device:position", msg);
+  _socket.emit("message", msg, () => {
     MessageQueue.endSending(roomSnapshot);
     if (!MessageQueue.isEmpty(roomSnapshot)) {
       sendQueue();
@@ -95,13 +94,13 @@ function sendQueue(): void {
 export function connect(socket: Socket, drsRoomName: string): void {
   _socket = socket;
   roomId = drsRoomName;
-  socket.on('message', onMessage);
+  socket.on("message", onMessage);
 }
 
 export function disconnect(): void {
   if (!_socket || !roomId) return;
-  _socket.emit('room:leave', { room_name: roomId });
-  _socket.off('message', onMessage);
+  _socket.emit("room:leave", { room_name: roomId });
+  _socket.off("message", onMessage);
   if (hereNowTimeout) clearTimeout(hereNowTimeout);
   roomId = null;
   SubtitleChunkPlayer.reset();
@@ -114,7 +113,7 @@ export function send(
   subtitles: SubtitleEntry[],
 ): void {
   if (!_socket || !roomId) {
-    console.warn('[RoomConnection] send called but socket/room not ready', {
+    console.warn("[RoomConnection] send called but socket/room not ready", {
       socket: !!_socket,
       roomId,
     });
@@ -126,7 +125,7 @@ export function send(
   } else {
     const value = {
       value: percentValue,
-      to: deviceId ?? '',
+      to: deviceId ?? "",
     };
     MessageQueue.push(roomId, value);
     if (!MessageQueue.isSendingInProgress(roomId)) {
