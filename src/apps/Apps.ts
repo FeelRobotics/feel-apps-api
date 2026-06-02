@@ -1,9 +1,9 @@
-import { getSocket } from '../FecSocket';
-import * as SubsSubs from '../subs/Subs';
-import type { SubtitleEntry } from '../types';
-import appsSettings from './AppsSettings';
-import * as RoomConnection from './PubnubRoomConnection';
-import * as Status from './Status';
+import { getSocket } from "../FecSocket";
+import * as SubsSubs from "../subs/Subs";
+import type { SubtitleEntry } from "../types";
+import appsSettings from "./AppsSettings";
+import * as RoomConnection from "./PubnubRoomConnection";
+import * as Status from "./Status";
 
 type DevicesChangedCallback = (devices: string[]) => void;
 
@@ -12,10 +12,10 @@ export function setServerUrl(url: string): void {
 }
 
 export function init(onDevicesChanged: DevicesChangedCallback | null): void {
-  console.log('App.init');
+  console.log("App.init");
 
   const socket = getSocket();
-  SubsSubs.setClientId(socket.id ?? '');
+  SubsSubs.setClientId(socket.id ?? "");
   Status.init(socket, onDevicesChanged);
   RoomConnection.connect(socket, appsSettings.roomName);
 }
@@ -23,8 +23,8 @@ export function init(onDevicesChanged: DevicesChangedCallback | null): void {
 export function destroy(): void {
   RoomConnection.disconnect();
   Status.disconnect();
-  appsSettings.userId = '';
-  appsSettings.roomName = '';
+  appsSettings.userId = "";
+  appsSettings.roomName = "";
 }
 
 export function playSubtitle(
@@ -35,4 +35,8 @@ export function playSubtitle(
   RoomConnection.send(percentValue, null, positionMsec, subtitles);
 }
 
-export { RoomConnection as data, Status as status };
+export function getMobileAppLaunchUrl(requestToken: string): string {
+  return "feelapp://authorize?token=" + encodeURIComponent(requestToken);
+}
+
+export { Status as status, RoomConnection as data };
