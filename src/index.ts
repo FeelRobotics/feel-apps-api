@@ -29,13 +29,13 @@ export function init(
   userId: string,
   roomName: string,
 ): void {
-  console.log("feel.init");
+  console.log('feel.init');
 
   DeviceWatch.init(fecToken, userId, roomName);
   apps.init(onDevicesChanged);
   DeviceWatch.onDeviceConnected(() => {
     const socket = getSocket();
-    const clientId = socket.id ?? "";
+    const clientId = socket.id ?? '';
     subs.init(
       { apiUrl: subsApiUrl, apptoken: feelSubsToken, clientId },
       apps.playSubtitle,
