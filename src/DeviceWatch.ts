@@ -18,7 +18,7 @@ function emitConnect(): void {
  * @param fecToken - FEC JWT (must contain sub claim)
  * @param userId   - Current user ID
  */
-export function init(fecToken: string, userId: string, roomName: string): void {
+export function init(fecToken: string, userId: string, roomName: string): Promise<void> {
   if (appsSettings.userId) {
     throw new Error(
       'Error: $feel library has been already initialized. Please call $feel.destroy() before initializing it again.',
@@ -44,8 +44,11 @@ export function init(fecToken: string, userId: string, roomName: string): void {
     }
   });
 
-  socket.on('connect', () => {
-    debug.log('DeviceWatch: FEC socket connected as user', userId);
+  return new Promise((resolve) => {
+    socket.once('connect', () => {
+      debug.log('DeviceWatch: FEC socket connected as user', userId);
+      resolve();
+    });
   });
 }
 

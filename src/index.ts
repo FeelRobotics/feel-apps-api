@@ -30,10 +30,10 @@ export function init(
   fecToken: string,
   userId: string,
   roomName: string,
-): void {
+): Promise<void> {
   debug.log('feel.init');
 
-  DeviceWatch.init(fecToken, userId, roomName);
+  const connected = DeviceWatch.init(fecToken, userId, roomName);
   apps.init(onDevicesChanged);
   DeviceWatch.onDeviceConnected(() => {
     const socket = getSocket();
@@ -43,6 +43,7 @@ export function init(
       apps.playSubtitle,
     );
   });
+  return connected;
 }
 
 function onDevicesChanged(devices: string[]): void {
@@ -60,9 +61,10 @@ export function initSlider(
   fecToken: string,
   userId: string,
   roomName: string,
-): void {
-  DeviceWatch.init(fecToken, userId, roomName);
+): Promise<void> {
+  const connected = DeviceWatch.init(fecToken, userId, roomName);
   apps.init(null);
+  return connected;
 }
 
 export function destroy(): void {
