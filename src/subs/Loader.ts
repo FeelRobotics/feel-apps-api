@@ -22,6 +22,7 @@ export async function loadSubtitlesInfo(
   subtitlesId: number | string,
   externalUserId: string | null,
   channel: string,
+  signal?: AbortSignal,
 ): Promise<SubtitlesResponse> {
   const id = parseInt(String(subtitlesId), 10);
   const params = new URLSearchParams();
@@ -33,7 +34,7 @@ export async function loadSubtitlesInfo(
 
   const url = `${settings.apiUrl}/videos/${encodeURIComponent(videoId)}/subtitles/${id}?${params}`;
 
-  const response = await fetch(url);
+  const response = await fetch(url, { signal });
   if (!response.ok)
     throw new Error(`Failed to load subtitles: ${response.statusText}`);
   return response.json() as Promise<SubtitlesResponse>;

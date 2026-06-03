@@ -108,12 +108,15 @@ export function stop(): void {
   playing = false;
 }
 
-export async function load(
+export function load(
   videoId: string,
   subtitlesId: number | string,
   externalUserId: string | null,
   channel = '',
+  options?: { signal?: AbortSignal },
 ): Promise<void> {
+  const { signal } = options ?? {};
+
   const doLoad = async () => {
     checkInitialized();
     const subtitlesData = await Loader.loadSubtitlesInfo(
@@ -121,6 +124,7 @@ export async function load(
       subtitlesId,
       externalUserId,
       channel,
+      signal,
     );
     Logger.setSessionId(subtitlesData.session_id);
     const subtitleMap = Parser.parse(subtitlesData.text);
@@ -129,10 +133,22 @@ export async function load(
   };
 
   return new Promise((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(signal.reason);
+      return;
+    }
+
     if (DeviceWatch.wasDeviceConnected()) {
       doLoad().then(resolve).catch(reject);
     } else {
-      DeviceWatch.onDeviceConnected(() => doLoad().then(resolve).catch(reject));
+      const onAbort = () => reject(signal!.reason);
+      signal?.addEventListener('abort', onAbort, { once: true });
+
+      DeviceWatch.onDeviceConnected(() => {
+        signal?.removeEventListener('abort', onAbort);
+        if (signal?.aborted) { reject(signal.reason); return; }
+        doLoad().then(resolve).catch(reject);
+      });
     }
   });
 }
