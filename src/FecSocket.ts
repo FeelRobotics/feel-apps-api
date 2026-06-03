@@ -7,6 +7,7 @@
  * BillingPubnub).
  */
 import { io, type Socket } from 'socket.io-client';
+import * as debug from './debug';
 
 let _socket: Socket | null = null;
 
@@ -32,24 +33,24 @@ export function initSocket(
   });
 
   _socket.on('connect', () => {
-    console.log('FecSocket connected, id:', _socket?.id);
+    debug.log('FecSocket connected, id:', _socket?.id);
     _socket?.emit(
       'room:join',
       { room_name: roomName },
       (ack: { ok?: boolean; error?: string } | undefined) => {
         if (!ack?.ok)
-          console.error('FecSocket room:join failed:', ack?.error ?? 'no ack');
-        else console.log('FecSocket room:join ok:', roomName);
+          debug.error('FecSocket room:join failed:', ack?.error ?? 'no ack');
+        else debug.log('FecSocket room:join ok:', roomName);
       },
     );
   });
 
   _socket.on('connect_error', (err) => {
-    console.error('FecSocket connection error:', err.message);
+    debug.error('FecSocket connection error:', err.message);
   });
 
   _socket.on('disconnect', (reason) => {
-    console.log('FecSocket disconnected:', reason);
+    debug.log('FecSocket disconnected:', reason);
   });
 
   return _socket;

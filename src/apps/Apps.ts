@@ -1,3 +1,4 @@
+import * as debug from "../debug";
 import { getSocket } from "../FecSocket";
 import * as SubsSubs from "../subs/Subs";
 import type { SubtitleEntry } from "../types";
@@ -12,7 +13,7 @@ export function setServerUrl(url: string): void {
 }
 
 export function init(onDevicesChanged: DevicesChangedCallback | null): void {
-  console.log("App.init");
+  debug.log("App.init");
 
   const socket = getSocket();
   SubsSubs.setClientId(socket.id ?? "");

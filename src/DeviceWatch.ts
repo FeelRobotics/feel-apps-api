@@ -1,4 +1,5 @@
 import appsSettings from './apps/AppsSettings';
+import * as debug from './debug';
 import { initSocket } from './FecSocket';
 import type { FecInboundMessage } from './types';
 
@@ -36,7 +37,7 @@ export function init(fecToken: string, userId: string, roomName: string): void {
     if (payload.message_type === 'system:presence') {
       const d = payload.data as { action?: string };
       if (d.action === 'join') {
-        console.log('DeviceWatch: Feel app connected');
+        debug.log('DeviceWatch: Feel app connected');
         handled = true;
         emitConnect();
       }
@@ -44,7 +45,7 @@ export function init(fecToken: string, userId: string, roomName: string): void {
   });
 
   socket.on('connect', () => {
-    console.log('DeviceWatch: FEC socket connected as user', userId);
+    debug.log('DeviceWatch: FEC socket connected as user', userId);
   });
 }
 

@@ -1,7 +1,9 @@
 import * as apps from "./apps/Apps";
+import * as debug from "./debug";
 import * as DeviceWatch from "./DeviceWatch";
 import { destroySocket, getSocket } from "./FecSocket";
 import * as subs from "./subs/Subs";
+export { setDebug } from "./debug";
 
 let subsApiUrl = "https://api-subtitles.feel-app.com/api/v1";
 
@@ -29,7 +31,7 @@ export function init(
   userId: string,
   roomName: string,
 ): void {
-  console.log('feel.init');
+  debug.log('feel.init');
 
   DeviceWatch.init(fecToken, userId, roomName);
   apps.init(onDevicesChanged);

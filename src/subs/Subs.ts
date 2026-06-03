@@ -1,4 +1,5 @@
 import * as DeviceWatch from '../DeviceWatch';
+import * as debug from '../debug';
 import type { SubsSettings, SubtitleEntry } from '../types';
 import * as BillingPubnub from './BillingPubnub';
 import * as Loader from './Loader';
@@ -145,7 +146,7 @@ export function init(
   settings: SubsSettings,
   onPlaySubtitle: PlaySubtitleFn,
 ): void {
-  console.log('Subs.init');
+  debug.log('Subs.init');
   Loader.init(settings);
   Logger.init(settings);
   onSubtitle = onPlaySubtitle;

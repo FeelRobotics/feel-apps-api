@@ -9,6 +9,7 @@
  *  - listen `message`  with message_type `webshare:presence` for room join/leave events
  */
 import type { Socket } from "socket.io-client";
+import * as debug from "../debug";
 import type { FecInboundMessage, SubtitleEntry } from "../types";
 import appsSettings from "./AppsSettings";
 import { filterIntermediateValues } from "./PercentArrayFilter";
@@ -81,7 +82,7 @@ function sendQueue(): void {
       payload: last.value,
     },
   };
-  console.log("[RoomConnection] sending device:position", msg);
+  debug.log("[RoomConnection] sending device:position", msg);
   _socket.emit("message", msg, () => {
     MessageQueue.endSending(roomSnapshot);
     if (!MessageQueue.isEmpty(roomSnapshot)) {
@@ -111,7 +112,7 @@ export function send(
   subtitles: SubtitleEntry[],
 ): void {
   if (!_socket || !roomId) {
-    console.warn("[RoomConnection] send called but socket/room not ready", {
+    debug.warn("[RoomConnection] send called but socket/room not ready", {
       socket: !!_socket,
       roomId,
     });

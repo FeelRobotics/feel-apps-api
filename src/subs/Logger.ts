@@ -1,3 +1,4 @@
+import * as debug from '../debug';
 import type { SubsSettings } from '../types';
 
 let settings: SubsSettings = { apiUrl: '', apptoken: '', clientId: '' };
@@ -44,11 +45,11 @@ function writeIntervalStart(intervalStartMsec: number): void {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ start: intervalStartMsec / 1000, devices }),
-  }).catch(console.error);
+  }).catch(debug.error);
 }
 
 function writeIntervalEnd(): void {
   if (sessionId === null) return;
   const url = `${settings.apiUrl}/sessions/${sessionId}/end?apptoken=${settings.apptoken}`;
-  fetch(url, { method: 'POST' }).catch(console.error);
+  fetch(url, { method: 'POST' }).catch(debug.error);
 }

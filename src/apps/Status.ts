@@ -1,4 +1,5 @@
 import type { Socket } from 'socket.io-client';
+import * as debug from '../debug';
 import type { DeviceStatusEvent, FecInboundMessage } from '../types';
 
 type StatusCallback = (status: DeviceStatusEvent) => void;
@@ -24,16 +25,16 @@ function emitStatus(): void {
 }
 
 function onMessage(payload: FecInboundMessage): void {
-  console.log('Status: onMessage', payload);
+  debug.log('Status: onMessage', payload);
   if (payload.message_type === 'system:presence') {
     const d = payload.data as { action?: string };
     if (d.action === 'join') {
-      console.log('Status: Feel app connected');
+      debug.log('Status: Feel app connected');
       isOnline = true;
       emitStatus();
       onDevicesChangedCallback?.(currentDevices);
     } else if (d.action === 'leave') {
-      console.log('Status: Feel app disconnected');
+      debug.log('Status: Feel app disconnected');
       isOnline = false;
       currentDevices = [];
       emitStatus();
