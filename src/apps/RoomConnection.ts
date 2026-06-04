@@ -43,7 +43,7 @@ function onMessage(payload: FecInboundMessage): void {
     return;
   }
 
-  if (message_type === MESSAGE_TYPE.WEBSHARE_PRESENCE) {
+  if (message_type === MESSAGE_TYPE.SYSTEM_PRESENCE) {
     if (data == null || typeof data !== "object") return;
     const presenceData = data as Record<string, unknown>;
     if (presenceData.action === "join") {

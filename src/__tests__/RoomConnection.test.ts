@@ -130,7 +130,7 @@ describe('incoming message handling', () => {
     RoomConnection.connect(socket as any, 'room1');
 
     const handler = getMessageHandler(socket);
-    handler({ message_type: MESSAGE_TYPE.WEBSHARE_PRESENCE, data: { action: 'join' } });
+    handler({ message_type: MESSAGE_TYPE.SYSTEM_PRESENCE, data: { action: 'join' } });
 
     expect(mockSubtitleChunkReset).toHaveBeenCalled();
   });

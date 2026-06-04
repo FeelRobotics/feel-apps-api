@@ -13,7 +13,6 @@ export const SOCKET_EVENT = {
 
 export const MESSAGE_TYPE = {
   SYSTEM_PRESENCE: 'system:presence',
-  WEBSHARE_PRESENCE: 'webshare:presence',
   DEVICE_POSITION: 'device:position',
   ROOM_PLAY: 'room:play',
   ROOM_STOP: 'room:stop',
