@@ -166,4 +166,4 @@ npm run check:fix  # auto-fix lint and format issues
 
 ## License
 
-Copyright © Feel Robotics. All rights reserved.
+MIT © [Feel Robotics](https://github.com/feelrobotics)
