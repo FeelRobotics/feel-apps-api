@@ -1,4 +1,5 @@
 import type { Socket } from 'socket.io-client';
+import { MESSAGE_TYPE, SOCKET_EVENT } from '../constants';
 import * as debug from '../debug';
 import type { DeviceStatusEvent, FecInboundMessage } from '../types';
 
@@ -26,7 +27,7 @@ function emitStatus(): void {
 
 function onMessage(payload: FecInboundMessage): void {
   debug.log('Status: onMessage', payload);
-  if (payload.message_type === 'system:presence') {
+  if (payload.message_type === MESSAGE_TYPE.SYSTEM_PRESENCE) {
     const d = payload.data as { action?: string };
     if (d.action === 'join') {
       debug.log('Status: Feel app connected');
@@ -54,7 +55,7 @@ export function unsubscribe(callback: StatusCallback): void {
 
 export function disconnect(): void {
   if (_socket) {
-    _socket.off('message', onMessage);
+    _socket.off(SOCKET_EVENT.MESSAGE, onMessage);
     _socket = null;
   }
 }
@@ -70,5 +71,5 @@ export function init(
   currentDevices = [];
   emitStatus();
 
-  socket.on('message', onMessage);
+  socket.on(SOCKET_EVENT.MESSAGE, onMessage);
 }

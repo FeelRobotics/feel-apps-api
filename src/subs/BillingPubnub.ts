@@ -5,6 +5,7 @@
  *
  * Room name: `billing.<socket.id>`
  */
+import { SOCKET_EVENT } from '../constants';
 import { getSocket } from '../FecSocket';
 
 let joined = false;
@@ -21,6 +22,6 @@ export function play(): void {
   }
 
   const channelId = `billing.${socket.id ?? ''}`;
-  socket.emit('room:join', channelId);
+  socket.emit(SOCKET_EVENT.ROOM_JOIN, channelId);
   joined = true;
 }

@@ -1,4 +1,5 @@
 import * as debug from "../debug";
+import * as DeviceWatch from "../DeviceWatch";
 import { getSocket } from "../FecSocket";
 import * as SubsSubs from "../subs/Subs";
 import type { SubtitleEntry } from "../types";
@@ -24,6 +25,7 @@ export function init(onDevicesChanged: DevicesChangedCallback | null): void {
 export function destroy(): void {
   RoomConnection.disconnect();
   Status.disconnect();
+  DeviceWatch.reset();
   appsSettings.userId = "";
   appsSettings.roomName = "";
 }

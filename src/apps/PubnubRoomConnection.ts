@@ -9,6 +9,7 @@
  *  - listen `message`  with message_type `webshare:presence` for room join/leave events
  */
 import type { Socket } from "socket.io-client";
+import { MESSAGE_TYPE, SOCKET_EVENT } from "../constants";
 import * as debug from "../debug";
 import type { FecInboundMessage, SubtitleEntry } from "../types";
 import appsSettings from "./AppsSettings";
@@ -36,7 +37,7 @@ function onMessage(payload: FecInboundMessage): void {
 
   const { message_type, data } = payload;
 
-  if (message_type === "device:position") {
+  if (message_type === MESSAGE_TYPE.DEVICE_POSITION) {
     const d = data as {
       target?: string;
       what?: string;
@@ -49,7 +50,7 @@ function onMessage(payload: FecInboundMessage): void {
     return;
   }
 
-  if (message_type === "webshare:presence") {
+  if (message_type === MESSAGE_TYPE.WEBSHARE_PRESENCE) {
     // A peer joined or left the DRS room
     const d = data as { action?: string };
     if (d.action === "join") {
@@ -75,7 +76,7 @@ function sendQueue(): void {
 
   const roomSnapshot = roomId;
   const msg = {
-    message_type: "device:position",
+    message_type: MESSAGE_TYPE.DEVICE_POSITION,
     data: {
       target: last.to || appsSettings.userId,
       what: "device_percent",
@@ -83,7 +84,7 @@ function sendQueue(): void {
     },
   };
   debug.log("[RoomConnection] sending device:position", msg);
-  _socket.emit("message", msg, () => {
+  _socket.emit(SOCKET_EVENT.MESSAGE, msg, () => {
     MessageQueue.endSending(roomSnapshot);
     if (!MessageQueue.isEmpty(roomSnapshot)) {
       sendQueue();
@@ -94,13 +95,13 @@ function sendQueue(): void {
 export function connect(socket: Socket, drsRoomName: string): void {
   _socket = socket;
   roomId = drsRoomName;
-  socket.on("message", onMessage);
+  socket.on(SOCKET_EVENT.MESSAGE, onMessage);
 }
 
 export function disconnect(): void {
   if (!_socket || !roomId) return;
-  _socket.emit("room:leave", { room_name: roomId });
-  _socket.off("message", onMessage);
+  _socket.emit(SOCKET_EVENT.ROOM_LEAVE, { room_name: roomId });
+  _socket.off(SOCKET_EVENT.MESSAGE, onMessage);
   roomId = null;
   SubtitleChunkPlayer.reset();
 }

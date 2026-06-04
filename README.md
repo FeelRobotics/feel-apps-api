@@ -23,7 +23,7 @@ The library outputs ESM, CommonJS, and IIFE bundles. The IIFE global is `$feel`.
 | Endpoint | URL |
 |---|---|
 | API | api.feel-app.com |
-| Subtitles | api.pibds.com |
+| Subtitles | api-subtitles.feel-app.com |
 | FEC | fec.feelme.com |
 
 ## Quick Start
