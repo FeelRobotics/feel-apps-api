@@ -6,38 +6,38 @@ export type SubtitleCallback = (
   allSubtitles: SubtitleEntry[],
 ) => void;
 
-let videoStartTimeMillis = 0;
+let videoStartedAt = 0;
 let nextSubtitleTimeout: ReturnType<typeof setTimeout> | null = null;
 let subtitles: SubtitleEntry[] = [];
 
-function findNextSubtitle(pos: number): SubtitleEntry | null {
+function findNextSubtitle(positionMsec: number): SubtitleEntry | null {
   // O(N) — acceptable for typical subtitle list sizes
   for (const subtitle of subtitles) {
-    if (subtitle.time > pos) return subtitle;
+    if (subtitle.time > positionMsec) return subtitle;
   }
   return null;
 }
 
-export function play(pos: number, onSubtitle: SubtitleCallback): void {
-  videoStartTimeMillis = Date.now() - pos;
+export function play(positionMsec: number, onSubtitle: SubtitleCallback): void {
+  videoStartedAt = Date.now() - positionMsec;
   if (nextSubtitleTimeout) clearTimeout(nextSubtitleTimeout);
   nextSubtitleTimeout = null;
 
-  const next = findNextSubtitle(pos);
+  const next = findNextSubtitle(positionMsec);
   if (!next) return;
 
-  const timeout = next.time - pos;
+  const timeout = next.time - positionMsec;
   nextSubtitleTimeout = setTimeout(() => {
     const now = Date.now();
-    const newPos = now - videoStartTimeMillis;
-    onSubtitle(next, newPos, subtitles);
-    play(newPos, onSubtitle);
+    const newPositionMsec = now - videoStartedAt;
+    onSubtitle(next, newPositionMsec, subtitles);
+    play(newPositionMsec, onSubtitle);
   }, timeout);
 }
 
-export function timeupdate(pos: number, onSubtitle: SubtitleCallback): void {
+export function timeupdate(positionMsec: number, onSubtitle: SubtitleCallback): void {
   if (!nextSubtitleTimeout) return; // not playing
-  play(pos, onSubtitle);
+  play(positionMsec, onSubtitle);
 }
 
 export function stop(): void {
@@ -53,5 +53,5 @@ export function setSubtitles(subtitleMap: SubtitleMap): void {
 }
 
 export function getCurrentVideoPosition(): number {
-  return Date.now() - videoStartTimeMillis;
+  return Date.now() - videoStartedAt;
 }

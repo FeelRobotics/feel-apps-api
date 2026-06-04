@@ -4,7 +4,7 @@
  *
  * Initialised once by DeviceWatch.init() and then reused by every module that
  * needs real-time messaging (Status, RoomConnection, SubtitleChunkPlayer,
- * BillingPubnub).
+ * BillingSession).
  */
 import { io, type Socket } from 'socket.io-client';
 import { SOCKET_EVENT } from './constants';

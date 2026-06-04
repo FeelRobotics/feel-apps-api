@@ -68,6 +68,7 @@ export function initSlider(
 }
 
 export function destroy(): void {
+  subs.destroy();
   apps.destroy();
   destroySocket();
 }

@@ -4,7 +4,7 @@ import { getSocket } from "../FecSocket";
 import * as SubsSubs from "../subs/Subs";
 import type { SubtitleEntry } from "../types";
 import appsSettings from "./AppsSettings";
-import * as RoomConnection from "./PubnubRoomConnection";
+import * as RoomConnection from "./RoomConnection";
 import * as Status from "./Status";
 
 type DevicesChangedCallback = (devices: string[]) => void;
@@ -35,7 +35,7 @@ export function playSubtitle(
   positionMsec: number,
   subtitles: SubtitleEntry[],
 ): void {
-  RoomConnection.send(percentValue, null, positionMsec, subtitles);
+  RoomConnection.send(percentValue, positionMsec, subtitles);
 }
 
 export function getMobileAppLaunchUrl(requestToken: string): string {

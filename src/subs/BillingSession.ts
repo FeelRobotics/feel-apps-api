@@ -10,6 +10,10 @@ import { getSocket } from '../FecSocket';
 
 let joined = false;
 
+export function reset(): void {
+  joined = false;
+}
+
 export function play(): void {
   if (joined) return;
 

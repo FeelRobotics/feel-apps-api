@@ -26,7 +26,6 @@ export async function loadSubtitlesInfo(
 ): Promise<SubtitlesResponse> {
   const id = parseInt(String(subtitlesId), 10);
   const params = new URLSearchParams();
-  params.set('apptoken', settings.apptoken);
   if (externalUserId) params.set('external_user_id', externalUserId);
   if (channel) params.set('channel', channel);
   // Keep the legacy query-param name for backward compatibility with the backend
@@ -34,7 +33,10 @@ export async function loadSubtitlesInfo(
 
   const url = `${settings.apiUrl}/videos/${encodeURIComponent(videoId)}/subtitles/${id}?${params}`;
 
-  const response = await fetch(url, { signal });
+  const response = await fetch(url, {
+    signal,
+    headers: { Authorization: `Bearer ${settings.apptoken}` },
+  });
   if (!response.ok)
     throw new Error(`Failed to load subtitles: ${response.statusText}`);
   return response.json() as Promise<SubtitlesResponse>;

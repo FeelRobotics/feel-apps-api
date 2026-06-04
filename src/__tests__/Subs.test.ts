@@ -30,7 +30,7 @@ function fresh(deviceConnected = false): typeof SubsType {
     wasDeviceConnected: mockWasConnected,
     onDeviceConnected: mockOnDeviceConnected,
   }));
-  jest.doMock('../subs/BillingPubnub', () => ({ play: mockBillingPlay }));
+  jest.doMock('../subs/BillingSession', () => ({ play: mockBillingPlay }));
   jest.doMock('../subs/Logger', () => ({
     init: jest.fn(),
     startInterval: mockLoggerStart,

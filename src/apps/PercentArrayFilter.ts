@@ -1,4 +1,4 @@
-import type { QueuedValue } from './PubnubMessageQueue';
+import type { QueuedValue } from './MessageQueue';
 
 /**
  * Remove intermediate values from an array, keeping only extremes (peaks and valleys).

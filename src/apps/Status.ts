@@ -20,21 +20,23 @@ function emitStatus(): void {
     devices: currentDevices,
     deviceDescriptions: [],
   };
-  statusCallbacks.forEach((cb) => {
-    cb(event);
+  statusCallbacks.forEach((callback) => {
+    callback(event);
   });
 }
 
 function onMessage(payload: FecInboundMessage): void {
   debug.log('Status: onMessage', payload);
   if (payload.message_type === MESSAGE_TYPE.SYSTEM_PRESENCE) {
-    const d = payload.data as { action?: string };
-    if (d.action === 'join') {
+    const data = payload.data;
+    if (data == null || typeof data !== 'object') return;
+    const presenceData = data as Record<string, unknown>;
+    if (presenceData.action === 'join') {
       debug.log('Status: Feel app connected');
       isOnline = true;
       emitStatus();
       onDevicesChangedCallback?.(currentDevices);
-    } else if (d.action === 'leave') {
+    } else if (presenceData.action === 'leave') {
       debug.log('Status: Feel app disconnected');
       isOnline = false;
       currentDevices = [];

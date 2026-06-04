@@ -1,12 +1,12 @@
-// Because PubnubMessageQueue has module-level state (queues and sendingInProgress),
+// Because MessageQueue has module-level state (queues and sendingInProgress),
 // we re-require it in each test via jest.isolateModules to get a clean slate.
 
-describe('PubnubMessageQueue', () => {
-  let Queue: typeof import('../apps/PubnubMessageQueue');
+describe('MessageQueue', () => {
+  let Queue: typeof import('../apps/MessageQueue');
 
   beforeEach(() => {
     jest.isolateModules(() => {
-      Queue = require('../apps/PubnubMessageQueue');
+      Queue = require('../apps/MessageQueue');
     });
   });
 

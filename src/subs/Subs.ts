@@ -1,7 +1,7 @@
 import * as DeviceWatch from '../DeviceWatch';
 import * as debug from '../debug';
 import type { SubsSettings, SubtitleEntry } from '../types';
-import * as BillingPubnub from './BillingPubnub';
+import * as BillingSession from './BillingSession';
 import * as Loader from './Loader';
 import * as Logger from './Logger';
 import * as Parser from './Parser';
@@ -19,24 +19,25 @@ const subtitleCallbacks: SubtitleEventCallback[] = [];
 
 let initialized = false;
 let onSubtitle: PlaySubtitleFn | null = null;
+let loadGeneration = 0;
 let watchDogTimeout: ReturnType<typeof setTimeout> | null = null;
-let buffering = false;
-let playing = false;
-let previousPos = 0;
+let isBuffering = false;
+let isPlaying = false;
+let previousPosSec = 0;
 const SEEK_DISTANCE = 2.0; // seconds
 
 function emitSubtitleEvent(percentValue: number): void {
-  subtitleCallbacks.forEach((cb) => {
-    cb(percentValue);
+  subtitleCallbacks.forEach((callback) => {
+    callback(percentValue);
   });
 }
 
 const subtitleCallback: SubtitleCallback = (
-  subtitleObj,
+  subtitleEntry,
   positionMsec,
   subtitles,
 ) => {
-  const percentValue = subtitleObj.subtitle * 25;
+  const percentValue = subtitleEntry.subtitle * 25;
   emitSubtitleEvent(percentValue);
   onSubtitle?.(percentValue, positionMsec, subtitles);
 };
@@ -46,32 +47,32 @@ function resetDevice(): void {
 }
 
 function handleVideoSeekEvent(currentPosSec: number): boolean {
-  if (Math.abs(currentPosSec - previousPos) > SEEK_DISTANCE) {
-    const wasPlaying = playing;
+  if (Math.abs(currentPosSec - previousPosSec) > SEEK_DISTANCE) {
+    const wasPlaying = isPlaying;
     stop();
     if (wasPlaying) play(currentPosSec);
-    previousPos = currentPosSec;
+    previousPosSec = currentPosSec;
     return true;
   }
-  previousPos = currentPosSec;
+  previousPosSec = currentPosSec;
   return false;
 }
 
 function checkInitialized(): void {
   if (!initialized) {
-    throw new Error('Please call $feel.init before loading/playing subtitles');
+    throw new Error('Please call $feel.init before loading/isPlaying subtitles');
   }
 }
 
 export function play(currentPosSec: number): void {
   if (DeviceWatch.wasDeviceConnected()) {
     checkInitialized();
-    const posMsec = Math.floor(currentPosSec * 1000);
-    PlayerLogic.play(posMsec, subtitleCallback);
-    Logger.startInterval(posMsec);
-    BillingPubnub.play();
+    const positionMsec = Math.floor(currentPosSec * 1000);
+    PlayerLogic.play(positionMsec, subtitleCallback);
+    Logger.startInterval(positionMsec);
+    BillingSession.play();
   }
-  playing = true;
+  isPlaying = true;
 }
 
 export function timeupdate(currentPosSec: number): void {
@@ -80,19 +81,19 @@ export function timeupdate(currentPosSec: number): void {
 
   if (handleVideoSeekEvent(currentPosSec)) return;
 
-  const posMsec = Math.floor(currentPosSec * 1000);
-  if (buffering) {
-    buffering = false;
-    PlayerLogic.play(posMsec, subtitleCallback);
+  const positionMsec = Math.floor(currentPosSec * 1000);
+  if (isBuffering) {
+    isBuffering = false;
+    PlayerLogic.play(positionMsec, subtitleCallback);
   } else {
-    PlayerLogic.timeupdate(posMsec, subtitleCallback);
+    PlayerLogic.timeupdate(positionMsec, subtitleCallback);
   }
 
   if (watchDogTimeout) clearTimeout(watchDogTimeout);
-  if (playing) {
+  if (isPlaying) {
     watchDogTimeout = setTimeout(() => {
       PlayerLogic.stop();
-      buffering = true;
+      isBuffering = true;
     }, 1_000);
   }
 }
@@ -105,7 +106,20 @@ export function stop(): void {
     Logger.endInterval();
     if (watchDogTimeout) clearTimeout(watchDogTimeout);
   }
-  playing = false;
+  isPlaying = false;
+}
+
+export function destroy(): void {
+  PlayerLogic.stop();
+  if (watchDogTimeout) clearTimeout(watchDogTimeout);
+  watchDogTimeout = null;
+  isPlaying = false;
+  isBuffering = false;
+  previousPosSec = 0;
+  initialized = false;
+  onSubtitle = null;
+  loadGeneration = 0;
+  BillingSession.reset();
 }
 
 export function load(
@@ -129,7 +143,7 @@ export function load(
     Logger.setSessionId(subtitlesData.session_id);
     const subtitleMap = Parser.parse(subtitlesData.text);
     PlayerLogic.setSubtitles(subtitleMap);
-    if (playing) PlayerLogic.play(0, subtitleCallback);
+    if (isPlaying) PlayerLogic.play(0, subtitleCallback);
   };
 
   return new Promise((resolve, reject) => {
@@ -141,11 +155,13 @@ export function load(
     if (DeviceWatch.wasDeviceConnected()) {
       doLoad().then(resolve).catch(reject);
     } else {
+      const generation = ++loadGeneration;
       const onAbort = () => reject(signal!.reason);
       signal?.addEventListener('abort', onAbort, { once: true });
 
       DeviceWatch.onDeviceConnected(() => {
         signal?.removeEventListener('abort', onAbort);
+        if (loadGeneration !== generation) { reject(new Error('Superseded by newer load()')); return; }
         if (signal?.aborted) { reject(signal.reason); return; }
         doLoad().then(resolve).catch(reject);
       });
@@ -154,8 +170,8 @@ export function load(
 }
 
 export function devicesChanged(devices: string[]): void {
-  const posMsec = PlayerLogic.getCurrentVideoPosition();
-  Logger.devicesChanged(devices, posMsec);
+  const positionMsec = PlayerLogic.getCurrentVideoPosition();
+  Logger.devicesChanged(devices, positionMsec);
 }
 
 export function init(

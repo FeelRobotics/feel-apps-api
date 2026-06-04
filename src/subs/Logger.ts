@@ -4,7 +4,7 @@ import type { SubsSettings } from '../types';
 let settings: SubsSettings = { apiUrl: '', apptoken: '', clientId: '' };
 let sessionId: number | null = null;
 let devices: string[] = [];
-let intervalStarted = false;
+let isIntervalActive = false;
 
 export function init(newSettings: SubsSettings): void {
   settings = newSettings;
@@ -15,12 +15,12 @@ export function setSessionId(id: string | number): void {
 }
 
 export function startInterval(currentTimeMsec: number): void {
-  intervalStarted = true;
+  isIntervalActive = true;
   writeIntervalStart(currentTimeMsec);
 }
 
 export function endInterval(): void {
-  intervalStarted = false;
+  isIntervalActive = false;
   writeIntervalEnd();
 }
 
@@ -30,26 +30,35 @@ export function devicesChanged(
 ): void {
   const same =
     newDevices.length === devices.length &&
-    newDevices.every((d, i) => d === devices[i]);
+    newDevices.every((device, i) => device === devices[i]);
 
   if (same) return;
 
   devices = newDevices;
-  if (intervalStarted) writeIntervalStart(currentTimeMsec);
+  if (isIntervalActive) writeIntervalStart(currentTimeMsec);
+}
+
+function sessionUrl(endpoint: string): string {
+  return `${settings.apiUrl}/sessions/${sessionId}/${endpoint}`;
+}
+
+function authHeaders(): HeadersInit {
+  return { Authorization: `Bearer ${settings.apptoken}` };
 }
 
 function writeIntervalStart(intervalStartMsec: number): void {
   if (sessionId === null) return;
-  const url = `${settings.apiUrl}/sessions/${sessionId}/start?apptoken=${settings.apptoken}`;
-  fetch(url, {
+  fetch(sessionUrl('start'), {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { ...authHeaders(), 'Content-Type': 'application/json' },
     body: JSON.stringify({ start: intervalStartMsec / 1000, devices }),
   }).catch(debug.error);
 }
 
 function writeIntervalEnd(): void {
   if (sessionId === null) return;
-  const url = `${settings.apiUrl}/sessions/${sessionId}/end?apptoken=${settings.apptoken}`;
-  fetch(url, { method: 'POST' }).catch(debug.error);
+  fetch(sessionUrl('end'), {
+    method: 'POST',
+    headers: authHeaders(),
+  }).catch(debug.error);
 }

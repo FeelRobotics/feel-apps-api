@@ -14,7 +14,7 @@ import * as debug from "../debug";
 import type { FecInboundMessage, SubtitleEntry } from "../types";
 import appsSettings from "./AppsSettings";
 import { filterIntermediateValues } from "./PercentArrayFilter";
-import * as MessageQueue from "./PubnubMessageQueue";
+import * as MessageQueue from "./MessageQueue";
 import * as SubtitleChunkPlayer from "./SubtitleChunkPlayer";
 
 type DataCallback = (percent: number, deviceName?: string) => void;
@@ -23,12 +23,9 @@ const dataCallbacks: DataCallback[] = [];
 let _socket: Socket | null = null;
 let roomId: string | null = null;
 
-// Default to v3 (subtitle-chunk protocol) — FEC supports it natively.
-const clientMessageHandlerVersion = 3;
-
 function emitData(percent: number, deviceName?: string): void {
-  dataCallbacks.forEach((cb) => {
-    cb(percent, deviceName);
+  dataCallbacks.forEach((callback) => {
+    callback(percent, deviceName);
   });
 }
 
@@ -38,27 +35,24 @@ function onMessage(payload: FecInboundMessage): void {
   const { message_type, data } = payload;
 
   if (message_type === MESSAGE_TYPE.DEVICE_POSITION) {
-    const d = data as {
-      target?: string;
-      what?: string;
-      payload?: number;
-      from?: string;
-    };
-    if (d.what === "device_percent" && typeof d.payload === "number") {
-      emitData(d.payload, d.from);
+    if (data == null || typeof data !== "object") return;
+    const positionData = data as Record<string, unknown>;
+    if (positionData.what === "device_percent" && typeof positionData.payload === "number") {
+      emitData(positionData.payload, positionData.from as string | undefined);
     }
     return;
   }
 
   if (message_type === MESSAGE_TYPE.WEBSHARE_PRESENCE) {
-    // A peer joined or left the DRS room
-    const d = data as { action?: string };
-    if (d.action === "join") {
+    if (data == null || typeof data !== "object") return;
+    const presenceData = data as Record<string, unknown>;
+    if (presenceData.action === "join") {
       SubtitleChunkPlayer.reset();
     }
     return;
   }
 }
+
 
 function sendQueue(): void {
   if (!_socket || !roomId) return;
@@ -102,13 +96,13 @@ export function disconnect(): void {
   if (!_socket || !roomId) return;
   _socket.emit(SOCKET_EVENT.ROOM_LEAVE, { room_name: roomId });
   _socket.off(SOCKET_EVENT.MESSAGE, onMessage);
+  _socket = null;
   roomId = null;
   SubtitleChunkPlayer.reset();
 }
 
 export function send(
   percentValue: number,
-  deviceId: string | null,
   positionMsec: number,
   subtitles: SubtitleEntry[],
 ): void {
@@ -120,14 +114,10 @@ export function send(
     return;
   }
 
-  if (subtitles && clientMessageHandlerVersion >= 3) {
+  if (subtitles.length > 0) {
     SubtitleChunkPlayer.play(positionMsec, subtitles, _socket, roomId);
   } else {
-    const value = {
-      value: percentValue,
-      to: deviceId ?? "",
-    };
-    MessageQueue.push(roomId, value);
+    MessageQueue.push(roomId, { value: percentValue });
     if (!MessageQueue.isSendingInProgress(roomId)) {
       sendQueue();
     }

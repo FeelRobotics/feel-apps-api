@@ -11,5 +11,9 @@ export function parse(subtitleString: string): SubtitleMap {
   const corrected = subtitleString
     .replace(/\s/g, '')
     .replace(/(['"])?([a-zA-Z0-9_.]+)(['"])?:/g, '"$2": ');
-  return JSON.parse(corrected) as SubtitleMap;
+  try {
+    return JSON.parse(corrected) as SubtitleMap;
+  } catch {
+    throw new Error(`Failed to parse subtitle data: ${corrected.slice(0, 60)}`);
+  }
 }

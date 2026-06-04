@@ -84,14 +84,17 @@ describe('Logger.startInterval / endInterval — sessionId guard', () => {
     expect(mockFetch).not.toHaveBeenCalled();
   });
 
-  it('fetches /start with correct URL after setSessionId', () => {
+  it('fetches /start with correct URL and Authorization header after setSessionId', () => {
     const Logger = fresh();
     Logger.init({ apiUrl: 'https://api.test', apptoken: 'tok', clientId: '' });
     Logger.setSessionId(42);
     Logger.startInterval(5000);
     expect(mockFetch).toHaveBeenCalledWith(
-      'https://api.test/sessions/42/start?apptoken=tok',
-      expect.objectContaining({ method: 'POST' }),
+      'https://api.test/sessions/42/start',
+      expect.objectContaining({
+        method: 'POST',
+        headers: expect.objectContaining({ Authorization: 'Bearer tok' }),
+      }),
     );
   });
 
@@ -111,14 +114,17 @@ describe('Logger.startInterval / endInterval — sessionId guard', () => {
     expect(mockFetch).not.toHaveBeenCalled();
   });
 
-  it('fetches /end with correct URL after setSessionId', () => {
+  it('fetches /end with correct URL and Authorization header after setSessionId', () => {
     const Logger = fresh();
     Logger.init({ apiUrl: 'https://api.test', apptoken: 'tok', clientId: '' });
     Logger.setSessionId(7);
     Logger.endInterval();
     expect(mockFetch).toHaveBeenCalledWith(
-      'https://api.test/sessions/7/end?apptoken=tok',
-      expect.objectContaining({ method: 'POST' }),
+      'https://api.test/sessions/7/end',
+      expect.objectContaining({
+        method: 'POST',
+        headers: expect.objectContaining({ Authorization: 'Bearer tok' }),
+      }),
     );
   });
 
