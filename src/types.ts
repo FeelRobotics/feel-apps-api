@@ -1,12 +1,5 @@
 // ─── Settings ─────────────────────────────────────────────────────────────────
 
-export interface AppsSettingsData {
-  apiUrl: string;
-  userId: string;
-  fecUrl: string;
-  roomName: string;
-}
-
 export interface SubsSettings {
   apiUrl: string;
   apptoken: string;
@@ -41,36 +34,6 @@ export interface SubtitleChunkMessage {
   type: "play" | "stop";
   serverTime: number;
   ver: 3;
-}
-
-export interface DeviceToDeviceMessageV1 {
-  src: string;
-  percents: number[];
-  deviceName: string;
-  ver: 1;
-}
-
-export interface DeviceToDeviceMessageV2 {
-  src: string;
-  values: Array<{ value: number; to: string; from?: string }>;
-  percents: number[];
-  ver: 2;
-}
-
-export type RoomMessage =
-  | SubtitleChunkMessage
-  | DeviceToDeviceMessageV1
-  | DeviceToDeviceMessageV2;
-
-// ─── DRS (Device Room Session) API response ───────────────────────────────────
-
-export interface DrsInfo {
-  drs_room: { drs_id: string };
-}
-
-export interface UserDevicesResponse {
-  devices: string[] | string | null;
-  device_descriptions: unknown[] | null;
 }
 
 // ─── FEC Socket.IO inbound message envelope ───────────────────────────────────

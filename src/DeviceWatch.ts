@@ -1,4 +1,4 @@
-import appsSettings from './apps/AppsSettings';
+import { getFecUrl, setRoomName, setUserId } from './apps/AppsSettings';
 import { MESSAGE_TYPE, SOCKET_EVENT } from './constants';
 import * as debug from './debug';
 import { initSocket } from './FecSocket';
@@ -34,10 +34,10 @@ export function init(fecToken: string, userId: string, roomName: string): Promis
   }
   initialized = true;
 
-  appsSettings.userId = userId;
-  appsSettings.roomName = roomName;
+  setUserId(userId);
+  setRoomName(roomName);
 
-  const socket = initSocket(appsSettings.fecUrl, fecToken, roomName);
+  const socket = initSocket(getFecUrl(), fecToken, roomName);
 
   function handlePresenceMessage(payload: FecInboundMessage): void {
     if (payload.message_type !== MESSAGE_TYPE.SYSTEM_PRESENCE) return;
@@ -63,7 +63,6 @@ export function init(fecToken: string, userId: string, roomName: string): Promis
 export function onDeviceConnected(callback: DeviceConnectedCallback): void {
   deviceConnectedCallbacks.push(callback);
 }
-
 
 /** Returns true if a Feel app has connected at least once in this session. */
 export function wasDeviceConnected(): boolean {

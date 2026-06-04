@@ -12,7 +12,9 @@ jest.mock('../FecSocket', () => ({
 
 // Mock AppsSettings — DeviceWatch writes userId/roomName to it
 jest.mock('../apps/AppsSettings', () => ({
-  default: { userId: '', roomName: '', fecUrl: 'https://fec.test' },
+  getFecUrl: jest.fn(() => 'https://fec.test'),
+  setUserId: jest.fn(),
+  setRoomName: jest.fn(),
 }));
 
 import * as DeviceWatch from '../DeviceWatch';

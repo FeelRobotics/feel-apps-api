@@ -163,6 +163,26 @@ describe('subtitleCallback — intensity scaling (subtitle × 25)', () => {
     cb({ time: 500, subtitle: 2 }, 500, []);
     expect(onPlay).toHaveBeenCalledWith(50, 500, []);
   });
+
+  it('clamps above-range subtitle value to 100%', () => {
+    const Subs = fresh(true);
+    const onPlay = jest.fn();
+    Subs.init(settings, onPlay);
+    Subs.play(0);
+    const cb = mockPlayerPlay.mock.calls[0][1];
+    cb({ time: 0, subtitle: 5 }, 0, []);
+    expect(onPlay).toHaveBeenCalledWith(100, 0, []);
+  });
+
+  it('clamps below-range subtitle value to 0%', () => {
+    const Subs = fresh(true);
+    const onPlay = jest.fn();
+    Subs.init(settings, onPlay);
+    Subs.play(0);
+    const cb = mockPlayerPlay.mock.calls[0][1];
+    cb({ time: 0, subtitle: -1 }, 0, []);
+    expect(onPlay).toHaveBeenCalledWith(0, 0, []);
+  });
 });
 
 // ─── guards ────────────────────────────────────────────────────────────────

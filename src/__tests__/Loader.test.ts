@@ -83,4 +83,11 @@ describe('Loader.loadSubtitlesInfo — error handling', () => {
       'Failed to load subtitles: Not Found',
     );
   });
+
+  it('throws when subtitlesId is non-numeric', async () => {
+    await expect(Loader.loadSubtitlesInfo('vid', 'abc', null, '')).rejects.toThrow(
+      'subtitlesId must be numeric',
+    );
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
 });

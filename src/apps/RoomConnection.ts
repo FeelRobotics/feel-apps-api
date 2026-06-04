@@ -12,7 +12,7 @@ import type { Socket } from "socket.io-client";
 import { MESSAGE_TYPE, SOCKET_EVENT } from "../constants";
 import * as debug from "../debug";
 import type { FecInboundMessage, SubtitleEntry } from "../types";
-import appsSettings from "./AppsSettings";
+import { getUserId } from "./AppsSettings";
 import { filterIntermediateValues } from "./PercentArrayFilter";
 import * as MessageQueue from "./MessageQueue";
 import * as SubtitleChunkPlayer from "./SubtitleChunkPlayer";
@@ -72,7 +72,7 @@ function sendQueue(): void {
   const msg = {
     message_type: MESSAGE_TYPE.DEVICE_POSITION,
     data: {
-      target: last.to || appsSettings.userId,
+      target: last.to || getUserId(),
       what: "device_percent",
       payload: last.value,
     },

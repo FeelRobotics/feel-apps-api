@@ -25,6 +25,7 @@ export async function loadSubtitlesInfo(
   signal?: AbortSignal,
 ): Promise<SubtitlesResponse> {
   const id = parseInt(String(subtitlesId), 10);
+  if (isNaN(id)) throw new Error(`subtitlesId must be numeric, got: ${subtitlesId}`);
   const params = new URLSearchParams();
   if (externalUserId) params.set('external_user_id', externalUserId);
   if (channel) params.set('channel', channel);

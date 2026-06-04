@@ -9,7 +9,7 @@ jest.mock('../apps/SubtitleChunkPlayer', () => ({
 }));
 
 jest.mock('../apps/AppsSettings', () => ({
-  default: { userId: 'user1' },
+  getUserId: jest.fn(() => 'user1'),
 }));
 
 // MessageQueue and PercentArrayFilter are pure in-memory — use the real modules

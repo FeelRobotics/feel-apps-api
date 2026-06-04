@@ -5,7 +5,8 @@ import { destroySocket, getSocket } from "./FecSocket";
 import * as subs from "./subs/Subs";
 export { setDebug } from "./debug";
 
-let subsApiUrl = "https://api-subtitles.feel-app.com/api/v1";
+const DEFAULT_SUBS_API_URL = "https://api-subtitles.feel-app.com/api/v1";
+let subsApiUrl = DEFAULT_SUBS_API_URL;
 
 interface Servers {
   apps?: string;
@@ -31,6 +32,11 @@ export function init(
   userId: string,
   roomName: string,
 ): Promise<void> {
+  if (!feelSubsToken) throw new Error('feel.init: feelSubsToken is required');
+  if (!fecToken) throw new Error('feel.init: fecToken is required');
+  if (!userId) throw new Error('feel.init: userId is required');
+  if (!roomName) throw new Error('feel.init: roomName is required');
+
   debug.log('feel.init');
 
   const connected = DeviceWatch.init(fecToken, userId, roomName);
@@ -62,6 +68,10 @@ export function initSlider(
   userId: string,
   roomName: string,
 ): Promise<void> {
+  if (!fecToken) throw new Error('feel.initSlider: fecToken is required');
+  if (!userId) throw new Error('feel.initSlider: userId is required');
+  if (!roomName) throw new Error('feel.initSlider: roomName is required');
+
   const connected = DeviceWatch.init(fecToken, userId, roomName);
   apps.init(null);
   return connected;
@@ -70,6 +80,8 @@ export function initSlider(
 export function destroy(): void {
   subs.destroy();
   apps.destroy();
+  apps.resetServerUrl();
+  subsApiUrl = DEFAULT_SUBS_API_URL;
   destroySocket();
 }
 

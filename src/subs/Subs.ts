@@ -37,7 +37,7 @@ const subtitleCallback: SubtitleCallback = (
   positionMsec,
   subtitles,
 ) => {
-  const percentValue = subtitleEntry.subtitle * 25;
+  const percentValue = Math.max(0, Math.min(100, subtitleEntry.subtitle * 25));
   emitSubtitleEvent(percentValue);
   onSubtitle?.(percentValue, positionMsec, subtitles);
 };
