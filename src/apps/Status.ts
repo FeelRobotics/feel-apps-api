@@ -60,6 +60,7 @@ export function disconnect(): void {
     _socket.off(SOCKET_EVENT.MESSAGE, onMessage);
     _socket = null;
   }
+  statusCallbacks.length = 0;
 }
 
 export function init(

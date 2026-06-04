@@ -99,6 +99,7 @@ export function disconnect(): void {
   _socket = null;
   roomId = null;
   SubtitleChunkPlayer.reset();
+  dataCallbacks.length = 0;
 }
 
 export function send(

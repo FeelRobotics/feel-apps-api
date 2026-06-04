@@ -40,5 +40,8 @@ export async function loadSubtitlesInfo(
   });
   if (!response.ok)
     throw new Error(`Failed to load subtitles: ${response.statusText}`);
-  return response.json() as Promise<SubtitlesResponse>;
+  const data = await response.json() as SubtitlesResponse;
+  if (typeof data.text !== 'string')
+    throw new Error('Subtitles API returned unexpected response shape');
+  return data;
 }

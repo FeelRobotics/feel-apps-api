@@ -13,9 +13,20 @@ interface Servers {
   subs?: string;
 }
 
+function assertHttpsUrl(url: string, param: string): void {
+  if (!url.startsWith('https://'))
+    throw new Error(`feel.setServers: ${param} must be an https:// URL`);
+}
+
 export function setServers(servers: Servers): void {
-  if (servers.apps) apps.setServerUrl(servers.apps);
-  if (servers.subs) subsApiUrl = servers.subs;
+  if (servers.apps) {
+    assertHttpsUrl(servers.apps, 'apps');
+    apps.setServerUrl(servers.apps);
+  }
+  if (servers.subs) {
+    assertHttpsUrl(servers.subs, 'subs');
+    subsApiUrl = servers.subs;
+  }
 }
 
 /**
