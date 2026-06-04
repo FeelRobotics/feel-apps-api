@@ -27,17 +27,14 @@ export async function loadSubtitlesInfo(
   const id = parseInt(String(subtitlesId), 10);
   if (isNaN(id)) throw new Error(`subtitlesId must be numeric, got: ${subtitlesId}`);
   const params = new URLSearchParams();
+  params.set('apptoken', settings.apptoken);
   if (externalUserId) params.set('external_user_id', externalUserId);
   if (channel) params.set('channel', channel);
-  // Keep the legacy query-param name for backward compatibility with the backend
   if (settings.clientId) params.set('pubnub_uuid', settings.clientId);
 
   const url = `${settings.apiUrl}/videos/${encodeURIComponent(videoId)}/subtitles/${id}?${params}`;
 
-  const response = await fetch(url, {
-    signal,
-    headers: { Authorization: `Bearer ${settings.apptoken}` },
-  });
+  const response = await fetch(url, { signal });
   if (!response.ok)
     throw new Error(`Failed to load subtitles: ${response.statusText}`);
   const data = await response.json() as SubtitlesResponse;

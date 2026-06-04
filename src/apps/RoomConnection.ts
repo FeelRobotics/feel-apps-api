@@ -118,6 +118,7 @@ export function send(
   if (subtitles.length > 0) {
     SubtitleChunkPlayer.play(positionMsec, subtitles, _socket, roomId);
   } else {
+    SubtitleChunkPlayer.stop(_socket, roomId);
     MessageQueue.push(roomId, { value: percentValue });
     if (!MessageQueue.isSendingInProgress(roomId)) {
       sendQueue();

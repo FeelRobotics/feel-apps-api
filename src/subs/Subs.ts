@@ -3,7 +3,6 @@ import * as debug from '../debug';
 import type { SubsSettings, SubtitleEntry } from '../types';
 import * as BillingSession from './BillingSession';
 import * as Loader from './Loader';
-import * as Logger from './Logger';
 import * as Parser from './Parser';
 import type { SubtitleCallback } from './PlayerLogic';
 import * as PlayerLogic from './PlayerLogic';
@@ -69,7 +68,6 @@ export function play(currentPosSec: number): void {
     checkInitialized();
     const positionMsec = Math.floor(currentPosSec * 1000);
     PlayerLogic.play(positionMsec, subtitleCallback);
-    Logger.startInterval(positionMsec);
     BillingSession.play();
   }
   isPlaying = true;
@@ -103,7 +101,6 @@ export function stop(): void {
     checkInitialized();
     PlayerLogic.stop();
     resetDevice();
-    Logger.endInterval();
     if (watchDogTimeout) clearTimeout(watchDogTimeout);
   }
   isPlaying = false;
@@ -140,7 +137,6 @@ export function load(
       channel,
       signal,
     );
-    Logger.setSessionId(subtitlesData.session_id);
     const subtitleMap = Parser.parse(subtitlesData.text);
     PlayerLogic.setSubtitles(subtitleMap);
     if (isPlaying) PlayerLogic.play(0, subtitleCallback);
@@ -169,10 +165,7 @@ export function load(
   });
 }
 
-export function devicesChanged(devices: string[]): void {
-  const positionMsec = PlayerLogic.getCurrentVideoPosition();
-  Logger.devicesChanged(devices, positionMsec);
-}
+export function devicesChanged(_devices: string[]): void {}
 
 export function init(
   settings: SubsSettings,
@@ -180,7 +173,6 @@ export function init(
 ): void {
   debug.log('Subs.init');
   Loader.init(settings);
-  Logger.init(settings);
   onSubtitle = onPlaySubtitle;
   initialized = true;
 }

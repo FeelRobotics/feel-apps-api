@@ -3,8 +3,10 @@ import { MESSAGE_TYPE, SOCKET_EVENT } from '../constants';
 
 const mockSubtitleChunkPlay = jest.fn();
 const mockSubtitleChunkReset = jest.fn();
+const mockSubtitleChunkStop = jest.fn();
 jest.mock('../apps/SubtitleChunkPlayer', () => ({
   play: mockSubtitleChunkPlay,
+  stop: mockSubtitleChunkStop,
   reset: mockSubtitleChunkReset,
 }));
 

@@ -69,6 +69,11 @@ export function play(
   sendPlay(nextSubtitles, socket, roomId);
 }
 
+export function stop(socket: Socket, roomId: string): void {
+  sendStop(socket, roomId);
+  lastMessageTime = null;
+}
+
 export function reset(): void {
   lastMessageTime = null;
 }

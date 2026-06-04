@@ -11,9 +11,6 @@ const mockPlayerGetPos = jest.fn(() => 0);
 const mockWasConnected = jest.fn(() => false);
 const mockOnDeviceConnected = jest.fn();
 const mockBillingPlay = jest.fn();
-const mockLoggerStart = jest.fn();
-const mockLoggerEnd = jest.fn();
-const mockLoggerDevicesChanged = jest.fn();
 const mockLoaderLoad = jest.fn();
 
 function fresh(deviceConnected = false): typeof SubsType {
@@ -31,13 +28,6 @@ function fresh(deviceConnected = false): typeof SubsType {
     onDeviceConnected: mockOnDeviceConnected,
   }));
   jest.doMock('../subs/BillingSession', () => ({ play: mockBillingPlay }));
-  jest.doMock('../subs/Logger', () => ({
-    init: jest.fn(),
-    startInterval: mockLoggerStart,
-    endInterval: mockLoggerEnd,
-    devicesChanged: mockLoggerDevicesChanged,
-    setSessionId: jest.fn(),
-  }));
   jest.doMock('../subs/Loader', () => ({
     init: jest.fn(),
     loadSubtitlesInfo: mockLoaderLoad,
