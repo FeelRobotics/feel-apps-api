@@ -2,7 +2,7 @@ import { getFecUrl, setRoomName, setUserId } from './apps/AppsSettings';
 import { MESSAGE_TYPE, SOCKET_EVENT } from './constants';
 import * as debug from './debug';
 import { initSocket } from './FecSocket';
-import type { FecInboundMessage } from './types';
+import type { FecInboundMessage, TokenRefreshOptions } from './types';
 
 type DeviceConnectedCallback = () => void;
 const deviceConnectedCallbacks: DeviceConnectedCallback[] = [];
@@ -26,7 +26,12 @@ function notifyDeviceConnected(): void {
  * @param userId   - Current user ID
  * @param roomName - DRS room name to join on connect
  */
-export function init(fecToken: string, userId: string, roomName: string): Promise<void> {
+export function init(
+  fecToken: string,
+  userId: string,
+  roomName: string,
+  tokenRefresh?: TokenRefreshOptions,
+): Promise<void> {
   if (initialized) {
     throw new Error(
       'Error: $feel library has been already initialized. Please call $feel.destroy() before initializing it again.',
@@ -37,7 +42,7 @@ export function init(fecToken: string, userId: string, roomName: string): Promis
   setUserId(userId);
   setRoomName(roomName);
 
-  const socket = initSocket(getFecUrl(), fecToken, roomName);
+  const socket = initSocket(getFecUrl(), fecToken, roomName, tokenRefresh);
 
   function handlePresenceMessage(payload: FecInboundMessage): void {
     if (payload.message_type !== MESSAGE_TYPE.SYSTEM_PRESENCE) return;

@@ -1,3 +1,12 @@
+// ─── Token refresh ────────────────────────────────────────────────────────────
+
+export interface TokenRefreshOptions {
+  /** Called every 12 h to retrieve a fresh fecToken before the current one expires. */
+  fetchToken: () => string | Promise<string>;
+  /** Called when fetchToken fails so the caller can react (e.g. force logout). */
+  onTokenError?: (err: Error) => void;
+}
+
 // ─── Settings ─────────────────────────────────────────────────────────────────
 
 export interface SubsSettings {

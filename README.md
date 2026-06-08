@@ -57,11 +57,34 @@ destroy()
 
 ### Top-level
 
-#### `init(feelSubsToken, fecToken, userId, roomName): Promise<void>`
+#### `init(feelSubsToken, fecToken, userId, roomName, tokenRefresh?): Promise<void>`
 Full initialization. Connects to FEC, starts device monitoring, and sets up subtitle playback once a device connects. The returned promise resolves when the FEC socket connects (not when a device joins).
 
-#### `initSlider(fecToken, userId, roomName): Promise<void>`
+#### `initSlider(fecToken, userId, roomName, tokenRefresh?): Promise<void>`
 Device control without subtitle support. Use `apps.playSubtitle(percent, 0, [])` to send haptic intensity directly.
+
+#### `TokenRefreshOptions`
+Both `init` and `initSlider` accept an optional `tokenRefresh` object to keep the FEC connection alive past the token's 24 h TTL. The token is refreshed every 12 h.
+
+```ts
+import { init, type TokenRefreshOptions } from '@feelrobotics/feel-apps-api'
+
+await init(feelSubsToken, fecToken, userId, roomName, {
+  fetchToken: async () => {
+    const res = await fetch('/api/refresh-fec-token')
+    return (await res.json()).fec_token
+  },
+  onTokenError: (err) => {
+    // Called when fetchToken fails — e.g. force logout or show an error
+    console.error('Token refresh failed:', err)
+  },
+})
+```
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `fetchToken` | `() => string \| Promise<string>` | yes | Returns a fresh FEC JWT |
+| `onTokenError` | `(err: Error) => void` | no | Called when `fetchToken` fails |
 
 #### `setServers(servers)`
 Override default API endpoints. Must be called before `init`.

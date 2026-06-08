@@ -3,7 +3,7 @@ import * as debug from "./debug";
 import * as DeviceWatch from "./DeviceWatch";
 import { destroySocket, getSocket } from "./FecSocket";
 import * as subs from "./subs/Subs";
-export { setDebug } from "./debug";
+import type { TokenRefreshOptions } from "./types";
 
 const DEFAULT_SUBS_API_URL = "https://api.pibds.com/api/v2";
 let subsApiUrl = DEFAULT_SUBS_API_URL;
@@ -42,6 +42,7 @@ export function init(
   fecToken: string,
   userId: string,
   roomName: string,
+  tokenRefresh?: TokenRefreshOptions,
 ): Promise<void> {
   if (!feelSubsToken) throw new Error("feel.init: feelSubsToken is required");
   if (!fecToken) throw new Error("feel.init: fecToken is required");
@@ -50,7 +51,7 @@ export function init(
 
   debug.log("feel.init");
 
-  const connected = DeviceWatch.init(fecToken, userId, roomName);
+  const connected = DeviceWatch.init(fecToken, userId, roomName, tokenRefresh);
   apps.init(onDevicesChanged);
   DeviceWatch.onDeviceConnected(() => {
     const socket = getSocket();
@@ -78,12 +79,13 @@ export function initSlider(
   fecToken: string,
   userId: string,
   roomName: string,
+  tokenRefresh?: TokenRefreshOptions,
 ): Promise<void> {
   if (!fecToken) throw new Error("feel.initSlider: fecToken is required");
   if (!userId) throw new Error("feel.initSlider: userId is required");
   if (!roomName) throw new Error("feel.initSlider: roomName is required");
 
-  const connected = DeviceWatch.init(fecToken, userId, roomName);
+  const connected = DeviceWatch.init(fecToken, userId, roomName, tokenRefresh);
   apps.init(null);
   return connected;
 }
@@ -97,3 +99,5 @@ export function destroy(): void {
 }
 
 export { apps, subs };
+export { setDebug } from "./debug";
+export type { TokenRefreshOptions } from "./types";
