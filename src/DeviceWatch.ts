@@ -1,55 +1,82 @@
-import type { FecInboundMessage } from "./types";
-import appsSettings from "./apps/AppsSettings";
-import { initSocket } from "./FecSocket";
+import { getFecUrl, setRoomName, setUserId } from './apps/AppsSettings';
+import { MESSAGE_TYPE, SOCKET_EVENT } from './constants';
+import * as debug from './debug';
+import { initSocket } from './FecSocket';
+import type { FecInboundMessage, TokenRefreshOptions } from './types';
 
-type ConnectCallback = () => void;
-const connectCallbacks: ConnectCallback[] = [];
+type DeviceConnectedCallback = () => void;
+const deviceConnectedCallbacks: DeviceConnectedCallback[] = [];
 let deviceWasConnected = false;
+let initialized = false;
 
-function emitConnect(): void {
+function notifyDeviceConnected(): void {
   deviceWasConnected = true;
-  connectCallbacks.forEach((cb) => cb());
+  deviceConnectedCallbacks.forEach((callback) => {
+    callback();
+  });
 }
 
 /**
+ * Connects to FEC and watches for the first Feel app join event.
+ *
+ * The returned promise resolves when the FEC *socket* connects — not when a
+ * device joins. Listen for device join via `onDeviceConnected()`.
+ *
  * @param fecToken - FEC JWT (must contain sub claim)
  * @param userId   - Current user ID
+ * @param roomName - DRS room name to join on connect
  */
-export function init(fecToken: string, userId: string, roomName: string): void {
-  if (appsSettings.userId) {
+export function init(
+  fecToken: string,
+  userId: string,
+  roomName: string,
+  tokenRefresh?: TokenRefreshOptions,
+): Promise<void> {
+  if (initialized) {
     throw new Error(
-      "Error: $feel library has been already initialized. Please call $feel.destroy() before initializing it again.",
+      'Error: $feel library has been already initialized. Please call $feel.destroy() before initializing it again.',
     );
   }
+  initialized = true;
 
-  appsSettings.userId = userId;
-  appsSettings.roomName = roomName;
+  setUserId(userId);
+  setRoomName(roomName);
 
-  const socket = initSocket(appsSettings.fecUrl, fecToken, roomName);
+  const socket = initSocket(getFecUrl(), fecToken, roomName, tokenRefresh);
 
-  let handled = false;
-
-  socket.on("message", (payload: FecInboundMessage) => {
-    if (handled) return;
-    if (payload.message_type === "system:presence") {
-      const d = payload.data as { action?: string };
-      if (d.action === "join") {
-        console.log("DeviceWatch: Feel app connected");
-        handled = true;
-        emitConnect();
-      }
+  function handlePresenceMessage(payload: FecInboundMessage): void {
+    if (payload.message_type !== MESSAGE_TYPE.SYSTEM_PRESENCE) return;
+    const data = payload.data;
+    if (data == null || typeof data !== 'object') return;
+    if ((data as Record<string, unknown>).action === 'join') {
+      socket.off(SOCKET_EVENT.MESSAGE, handlePresenceMessage);
+      debug.log('DeviceWatch: Feel app connected');
+      notifyDeviceConnected();
     }
-  });
+  }
+  socket.on(SOCKET_EVENT.MESSAGE, handlePresenceMessage);
 
-  socket.on("connect", () => {
-    console.log("DeviceWatch: FEC socket connected as user", userId);
+  return new Promise((resolve) => {
+    socket.once(SOCKET_EVENT.CONNECT, () => {
+      debug.log('DeviceWatch: FEC socket connected as user', userId);
+      resolve();
+    });
   });
 }
 
-export function onDeviceConnected(callback: ConnectCallback): void {
-  connectCallbacks.push(callback);
+/** Register a callback to fire once when the first Feel app joins the room. */
+export function onDeviceConnected(callback: DeviceConnectedCallback): void {
+  deviceConnectedCallbacks.push(callback);
 }
 
+/** Returns true if a Feel app has connected at least once in this session. */
 export function wasDeviceConnected(): boolean {
   return deviceWasConnected;
+}
+
+/** Clear all state — must be called before re-initialising with `init()`. */
+export function reset(): void {
+  deviceConnectedCallbacks.length = 0;
+  deviceWasConnected = false;
+  initialized = false;
 }

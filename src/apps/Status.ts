@@ -1,5 +1,7 @@
-import type { Socket } from "socket.io-client";
-import type { DeviceStatusEvent, FecInboundMessage } from "../types";
+import type { Socket } from 'socket.io-client';
+import { MESSAGE_TYPE, SOCKET_EVENT } from '../constants';
+import * as debug from '../debug';
+import type { DeviceStatusEvent, FecInboundMessage } from '../types';
 
 type StatusCallback = (status: DeviceStatusEvent) => void;
 type DevicesChangedCallback = (devices: string[]) => void;
@@ -18,20 +20,24 @@ function emitStatus(): void {
     devices: currentDevices,
     deviceDescriptions: [],
   };
-  statusCallbacks.forEach((cb) => cb(event));
+  statusCallbacks.forEach((callback) => {
+    callback(event);
+  });
 }
 
 function onMessage(payload: FecInboundMessage): void {
-  console.log("Status: onMessage", payload);
-  if (payload.message_type === "system:presence") {
-    const d = payload.data as { action?: string };
-    if (d.action === "join") {
-      console.log("Status: Feel app connected");
+  debug.log('Status: onMessage', payload);
+  if (payload.message_type === MESSAGE_TYPE.SYSTEM_PRESENCE) {
+    const data = payload.data;
+    if (data == null || typeof data !== 'object') return;
+    const presenceData = data as Record<string, unknown>;
+    if (presenceData.action === 'join') {
+      debug.log('Status: Feel app connected');
       isOnline = true;
       emitStatus();
       onDevicesChangedCallback?.(currentDevices);
-    } else if (d.action === "leave") {
-      console.log("Status: Feel app disconnected");
+    } else if (presenceData.action === 'leave') {
+      debug.log('Status: Feel app disconnected');
       isOnline = false;
       currentDevices = [];
       emitStatus();
@@ -51,9 +57,10 @@ export function unsubscribe(callback: StatusCallback): void {
 
 export function disconnect(): void {
   if (_socket) {
-    _socket.off("message", onMessage);
+    _socket.off(SOCKET_EVENT.MESSAGE, onMessage);
     _socket = null;
   }
+  statusCallbacks.length = 0;
 }
 
 export function init(
@@ -67,5 +74,5 @@ export function init(
   currentDevices = [];
   emitStatus();
 
-  socket.on("message", onMessage);
+  socket.on(SOCKET_EVENT.MESSAGE, onMessage);
 }
