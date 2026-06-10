@@ -9,10 +9,12 @@
  *  - listen `message`  with message_type `webshare:presence` for room join/leave events
  */
 import type { Socket } from "socket.io-client";
+import { MESSAGE_TYPE, SOCKET_EVENT } from "../constants";
+import * as debug from "../debug";
 import type { FecInboundMessage, SubtitleEntry } from "../types";
-import appsSettings from "./AppsSettings";
+import { getUserId } from "./AppsSettings";
 import { filterIntermediateValues } from "./PercentArrayFilter";
-import * as MessageQueue from "./PubnubMessageQueue";
+import * as MessageQueue from "./MessageQueue";
 import * as SubtitleChunkPlayer from "./SubtitleChunkPlayer";
 
 type DataCallback = (percent: number, deviceName?: string) => void;
@@ -21,12 +23,9 @@ const dataCallbacks: DataCallback[] = [];
 let _socket: Socket | null = null;
 let roomId: string | null = null;
 
-// Default to v3 (subtitle-chunk protocol) — FEC supports it natively.
-const clientMessageHandlerVersion = 3;
-
 function emitData(percent: number, deviceName?: string): void {
-  dataCallbacks.forEach((cb) => {
-    cb(percent, deviceName);
+  dataCallbacks.forEach((callback) => {
+    callback(percent, deviceName);
   });
 }
 
@@ -35,28 +34,25 @@ function onMessage(payload: FecInboundMessage): void {
 
   const { message_type, data } = payload;
 
-  if (message_type === "device:position") {
-    const d = data as {
-      target?: string;
-      what?: string;
-      payload?: number;
-      from?: string;
-    };
-    if (d.what === "device_percent" && typeof d.payload === "number") {
-      emitData(d.payload, d.from);
+  if (message_type === MESSAGE_TYPE.DEVICE_POSITION) {
+    if (data == null || typeof data !== "object") return;
+    const positionData = data as Record<string, unknown>;
+    if (positionData.what === "device_percent" && typeof positionData.payload === "number") {
+      emitData(positionData.payload, positionData.from as string | undefined);
     }
     return;
   }
 
-  if (message_type === "webshare:presence") {
-    // A peer joined or left the DRS room
-    const d = data as { action?: string };
-    if (d.action === "join") {
+  if (message_type === MESSAGE_TYPE.SYSTEM_PRESENCE) {
+    if (data == null || typeof data !== "object") return;
+    const presenceData = data as Record<string, unknown>;
+    if (presenceData.action === "join") {
       SubtitleChunkPlayer.reset();
     }
     return;
   }
 }
+
 
 function sendQueue(): void {
   if (!_socket || !roomId) return;
@@ -74,15 +70,15 @@ function sendQueue(): void {
 
   const roomSnapshot = roomId;
   const msg = {
-    message_type: "device:position",
+    message_type: MESSAGE_TYPE.DEVICE_POSITION,
     data: {
-      target: last.to || appsSettings.userId,
+      target: last.to || getUserId(),
       what: "device_percent",
       payload: last.value,
     },
   };
-  console.log("[RoomConnection] sending device:position", msg);
-  _socket.emit("message", msg, () => {
+  debug.log("[RoomConnection] sending device:position", msg);
+  _socket.emit(SOCKET_EVENT.MESSAGE, msg, () => {
     MessageQueue.endSending(roomSnapshot);
     if (!MessageQueue.isEmpty(roomSnapshot)) {
       sendQueue();
@@ -93,39 +89,37 @@ function sendQueue(): void {
 export function connect(socket: Socket, drsRoomName: string): void {
   _socket = socket;
   roomId = drsRoomName;
-  socket.on("message", onMessage);
+  socket.on(SOCKET_EVENT.MESSAGE, onMessage);
 }
 
 export function disconnect(): void {
   if (!_socket || !roomId) return;
-  _socket.emit("room:leave", { room_name: roomId });
-  _socket.off("message", onMessage);
+  _socket.emit(SOCKET_EVENT.ROOM_LEAVE, { room_name: roomId });
+  _socket.off(SOCKET_EVENT.MESSAGE, onMessage);
+  _socket = null;
   roomId = null;
   SubtitleChunkPlayer.reset();
+  dataCallbacks.length = 0;
 }
 
 export function send(
   percentValue: number,
-  deviceId: string | null,
   positionMsec: number,
   subtitles: SubtitleEntry[],
 ): void {
   if (!_socket || !roomId) {
-    console.warn("[RoomConnection] send called but socket/room not ready", {
+    debug.warn("[RoomConnection] send called but socket/room not ready", {
       socket: !!_socket,
       roomId,
     });
     return;
   }
 
-  if (subtitles && clientMessageHandlerVersion >= 3) {
+  if (subtitles.length > 0) {
     SubtitleChunkPlayer.play(positionMsec, subtitles, _socket, roomId);
   } else {
-    const value = {
-      value: percentValue,
-      to: deviceId ?? "",
-    };
-    MessageQueue.push(roomId, value);
+    SubtitleChunkPlayer.stop(_socket, roomId);
+    MessageQueue.push(roomId, { value: percentValue });
     if (!MessageQueue.isSendingInProgress(roomId)) {
       sendQueue();
     }

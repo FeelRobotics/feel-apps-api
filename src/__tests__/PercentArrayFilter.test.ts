@@ -1,5 +1,5 @@
 import { filterIntermediateValues } from '../apps/PercentArrayFilter';
-import type { QueuedValue } from '../apps/PubnubMessageQueue';
+import type { QueuedValue } from '../apps/MessageQueue';
 
 function vals(...values: number[]): QueuedValue[] {
   return values.map((v) => ({ value: v }));

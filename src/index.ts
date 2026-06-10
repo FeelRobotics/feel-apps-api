@@ -1,18 +1,32 @@
 import * as apps from "./apps/Apps";
+import * as debug from "./debug";
 import * as DeviceWatch from "./DeviceWatch";
 import { destroySocket, getSocket } from "./FecSocket";
 import * as subs from "./subs/Subs";
+import type { TokenRefreshOptions } from "./types";
 
-let subsApiUrl = "https://api-subtitles.feel-app.com/api/v1";
+const DEFAULT_SUBS_API_URL = "https://api.pibds.com/api/v2";
+let subsApiUrl = DEFAULT_SUBS_API_URL;
 
 interface Servers {
   apps?: string;
   subs?: string;
 }
 
+function assertHttpsUrl(url: string, param: string): void {
+  if (!url.startsWith("https://"))
+    throw new Error(`feel.setServers: ${param} must be an https:// URL`);
+}
+
 export function setServers(servers: Servers): void {
-  if (servers.apps) apps.setServerUrl(servers.apps);
-  if (servers.subs) subsApiUrl = servers.subs;
+  if (servers.apps) {
+    assertHttpsUrl(servers.apps, "apps");
+    apps.setServerUrl(servers.apps);
+  }
+  if (servers.subs) {
+    assertHttpsUrl(servers.subs, "subs");
+    subsApiUrl = servers.subs;
+  }
 }
 
 /**
@@ -28,19 +42,26 @@ export function init(
   fecToken: string,
   userId: string,
   roomName: string,
-): void {
-  console.log('feel.init');
+  tokenRefresh?: TokenRefreshOptions,
+): Promise<void> {
+  if (!feelSubsToken) throw new Error("feel.init: feelSubsToken is required");
+  if (!fecToken) throw new Error("feel.init: fecToken is required");
+  if (!userId) throw new Error("feel.init: userId is required");
+  if (!roomName) throw new Error("feel.init: roomName is required");
 
-  DeviceWatch.init(fecToken, userId, roomName);
+  debug.log("feel.init");
+
+  const connected = DeviceWatch.init(fecToken, userId, roomName, tokenRefresh);
   apps.init(onDevicesChanged);
   DeviceWatch.onDeviceConnected(() => {
     const socket = getSocket();
-    const clientId = socket.id ?? '';
+    const clientId = socket.id ?? "";
     subs.init(
       { apiUrl: subsApiUrl, apptoken: feelSubsToken, clientId },
       apps.playSubtitle,
     );
   });
+  return connected;
 }
 
 function onDevicesChanged(devices: string[]): void {
@@ -58,14 +79,25 @@ export function initSlider(
   fecToken: string,
   userId: string,
   roomName: string,
-): void {
-  DeviceWatch.init(fecToken, userId, roomName);
+  tokenRefresh?: TokenRefreshOptions,
+): Promise<void> {
+  if (!fecToken) throw new Error("feel.initSlider: fecToken is required");
+  if (!userId) throw new Error("feel.initSlider: userId is required");
+  if (!roomName) throw new Error("feel.initSlider: roomName is required");
+
+  const connected = DeviceWatch.init(fecToken, userId, roomName, tokenRefresh);
   apps.init(null);
+  return connected;
 }
 
 export function destroy(): void {
+  subs.destroy();
   apps.destroy();
+  apps.resetServerUrl();
+  subsApiUrl = DEFAULT_SUBS_API_URL;
   destroySocket();
 }
 
 export { apps, subs };
+export { setDebug } from "./debug";
+export type { TokenRefreshOptions } from "./types";

@@ -11,9 +11,6 @@ const mockPlayerGetPos = jest.fn(() => 0);
 const mockWasConnected = jest.fn(() => false);
 const mockOnDeviceConnected = jest.fn();
 const mockBillingPlay = jest.fn();
-const mockLoggerStart = jest.fn();
-const mockLoggerEnd = jest.fn();
-const mockLoggerDevicesChanged = jest.fn();
 const mockLoaderLoad = jest.fn();
 
 function fresh(deviceConnected = false): typeof SubsType {
@@ -30,14 +27,7 @@ function fresh(deviceConnected = false): typeof SubsType {
     wasDeviceConnected: mockWasConnected,
     onDeviceConnected: mockOnDeviceConnected,
   }));
-  jest.doMock('../subs/BillingPubnub', () => ({ play: mockBillingPlay }));
-  jest.doMock('../subs/Logger', () => ({
-    init: jest.fn(),
-    startInterval: mockLoggerStart,
-    endInterval: mockLoggerEnd,
-    devicesChanged: mockLoggerDevicesChanged,
-    setSessionId: jest.fn(),
-  }));
+  jest.doMock('../subs/BillingSession', () => ({ play: mockBillingPlay }));
   jest.doMock('../subs/Loader', () => ({
     init: jest.fn(),
     loadSubtitlesInfo: mockLoaderLoad,
@@ -162,6 +152,26 @@ describe('subtitleCallback — intensity scaling (subtitle × 25)', () => {
     const cb = mockPlayerPlay.mock.calls[0][1];
     cb({ time: 500, subtitle: 2 }, 500, []);
     expect(onPlay).toHaveBeenCalledWith(50, 500, []);
+  });
+
+  it('clamps above-range subtitle value to 100%', () => {
+    const Subs = fresh(true);
+    const onPlay = jest.fn();
+    Subs.init(settings, onPlay);
+    Subs.play(0);
+    const cb = mockPlayerPlay.mock.calls[0][1];
+    cb({ time: 0, subtitle: 5 }, 0, []);
+    expect(onPlay).toHaveBeenCalledWith(100, 0, []);
+  });
+
+  it('clamps below-range subtitle value to 0%', () => {
+    const Subs = fresh(true);
+    const onPlay = jest.fn();
+    Subs.init(settings, onPlay);
+    Subs.play(0);
+    const cb = mockPlayerPlay.mock.calls[0][1];
+    cb({ time: 0, subtitle: -1 }, 0, []);
+    expect(onPlay).toHaveBeenCalledWith(0, 0, []);
   });
 });
 
