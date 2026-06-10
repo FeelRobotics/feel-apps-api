@@ -26,6 +26,6 @@ export function play(): void {
   }
 
   const channelId = `billing.${socket.id ?? ''}`;
-  socket.emit(SOCKET_EVENT.ROOM_JOIN, channelId);
+  socket.emit(SOCKET_EVENT.ROOM_JOIN, { room_name: channelId });
   joined = true;
 }
