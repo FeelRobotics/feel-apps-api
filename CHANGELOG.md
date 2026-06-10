@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-06-10
+
+### Fixed
+- `BillingSession`: `room:join` payload corrected from a plain string to `{ room_name }` object to match FEC schema — billing room was silently never joined in all previous versions
+
 ## [1.0.4] - 2026-06-04
 
 ### Security
