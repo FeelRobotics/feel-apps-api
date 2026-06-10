@@ -1,12 +1,12 @@
 {
   "name": "@feelrobotics/feel-apps-api",
-  "version": "1.0.4",
+  "version": "2.0.0",
   "description": "Real-time haptic feedback and device control library for Feel Robotics applications",
   "author": "Feel Robotics <info@feelrobotics.com>",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/feelrobotics/feel-apps-api.git"
+    "url": "git+https://github.com/feelrobotics/feel-apps-api.git"
   },
   "bugs": {
     "url": "https://github.com/feelrobotics/feel-apps-api/issues"
