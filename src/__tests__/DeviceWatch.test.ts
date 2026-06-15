@@ -17,13 +17,14 @@ jest.mock('../apps/AppsSettings', () => ({
   setRoomName: jest.fn(),
 }));
 
+import { MESSAGE_TYPE, SOCKET_EVENT } from '../constants';
 import * as DeviceWatch from '../DeviceWatch';
-import { SOCKET_EVENT, MESSAGE_TYPE } from '../constants';
 
 // Helper: grab the handler registered for a given socket event
 function captureHandler(event: string): (...args: unknown[]) => void {
-  const call = mockSocket.on.mock.calls.find(([e]) => e === event)
-    ?? mockSocket.once.mock.calls.find(([e]) => e === event);
+  const call =
+    mockSocket.on.mock.calls.find(([e]) => e === event) ??
+    mockSocket.once.mock.calls.find(([e]) => e === event);
   if (!call) throw new Error(`No handler registered for "${event}"`);
   return call[1] as (...args: unknown[]) => void;
 }
@@ -36,7 +37,9 @@ beforeEach(() => {
 describe('init()', () => {
   it('throws if called twice without reset', () => {
     DeviceWatch.init('tok', 'user1', 'room1');
-    expect(() => DeviceWatch.init('tok', 'user1', 'room1')).toThrow('already initialized');
+    expect(() => DeviceWatch.init('tok', 'user1', 'room1')).toThrow(
+      'already initialized',
+    );
   });
 
   it('resolves when socket emits connect', async () => {
@@ -48,7 +51,10 @@ describe('init()', () => {
 
   it('registers a message handler on the socket', () => {
     DeviceWatch.init('tok', 'user1', 'room1');
-    expect(mockSocket.on).toHaveBeenCalledWith(SOCKET_EVENT.MESSAGE, expect.any(Function));
+    expect(mockSocket.on).toHaveBeenCalledWith(
+      SOCKET_EVENT.MESSAGE,
+      expect.any(Function),
+    );
   });
 });
 
@@ -63,7 +69,10 @@ describe('reset()', () => {
     DeviceWatch.init('tok', 'user1', 'room1');
     // Simulate device join
     const messageHandler = captureHandler(SOCKET_EVENT.MESSAGE);
-    messageHandler({ message_type: MESSAGE_TYPE.SYSTEM_PRESENCE, data: { action: 'join' } });
+    messageHandler({
+      message_type: MESSAGE_TYPE.SYSTEM_PRESENCE,
+      data: { action: 'join' },
+    });
     expect(DeviceWatch.wasDeviceConnected()).toBe(true);
 
     DeviceWatch.reset();
@@ -78,7 +87,10 @@ describe('reset()', () => {
     // Re-init and trigger device join — old callback must NOT fire
     DeviceWatch.init('tok', 'user1', 'room1');
     const messageHandler = captureHandler(SOCKET_EVENT.MESSAGE);
-    messageHandler({ message_type: MESSAGE_TYPE.SYSTEM_PRESENCE, data: { action: 'join' } });
+    messageHandler({
+      message_type: MESSAGE_TYPE.SYSTEM_PRESENCE,
+      data: { action: 'join' },
+    });
     expect(cb).not.toHaveBeenCalled();
   });
 });
@@ -90,15 +102,24 @@ describe('onDeviceConnected()', () => {
     DeviceWatch.init('tok', 'user1', 'room1');
 
     const messageHandler = captureHandler(SOCKET_EVENT.MESSAGE);
-    messageHandler({ message_type: MESSAGE_TYPE.SYSTEM_PRESENCE, data: { action: 'join' } });
+    messageHandler({
+      message_type: MESSAGE_TYPE.SYSTEM_PRESENCE,
+      data: { action: 'join' },
+    });
     expect(cb).toHaveBeenCalledTimes(1);
   });
 
   it('calls socket.off after first join — self-removes from socket', () => {
     DeviceWatch.init('tok', 'user1', 'room1');
     const messageHandler = captureHandler(SOCKET_EVENT.MESSAGE);
-    messageHandler({ message_type: MESSAGE_TYPE.SYSTEM_PRESENCE, data: { action: 'join' } });
-    expect(mockSocket.off).toHaveBeenCalledWith(SOCKET_EVENT.MESSAGE, messageHandler);
+    messageHandler({
+      message_type: MESSAGE_TYPE.SYSTEM_PRESENCE,
+      data: { action: 'join' },
+    });
+    expect(mockSocket.off).toHaveBeenCalledWith(
+      SOCKET_EVENT.MESSAGE,
+      messageHandler,
+    );
   });
 
   it('does not fire for non-presence messages', () => {
@@ -117,7 +138,10 @@ describe('onDeviceConnected()', () => {
     DeviceWatch.init('tok', 'user1', 'room1');
 
     const messageHandler = captureHandler(SOCKET_EVENT.MESSAGE);
-    messageHandler({ message_type: MESSAGE_TYPE.SYSTEM_PRESENCE, data: { action: 'leave' } });
+    messageHandler({
+      message_type: MESSAGE_TYPE.SYSTEM_PRESENCE,
+      data: { action: 'leave' },
+    });
     expect(cb).not.toHaveBeenCalled();
   });
 });
@@ -131,7 +155,10 @@ describe('wasDeviceConnected()', () => {
   it('returns true after device joins', () => {
     DeviceWatch.init('tok', 'user1', 'room1');
     const messageHandler = captureHandler(SOCKET_EVENT.MESSAGE);
-    messageHandler({ message_type: MESSAGE_TYPE.SYSTEM_PRESENCE, data: { action: 'join' } });
+    messageHandler({
+      message_type: MESSAGE_TYPE.SYSTEM_PRESENCE,
+      data: { action: 'join' },
+    });
     expect(DeviceWatch.wasDeviceConnected()).toBe(true);
   });
 });

@@ -59,7 +59,9 @@ function handleVideoSeekEvent(currentPosSec: number): boolean {
 
 function checkInitialized(): void {
   if (!initialized) {
-    throw new Error('Please call $feel.init before loading/isPlaying subtitles');
+    throw new Error(
+      'Please call $feel.init before loading/isPlaying subtitles',
+    );
   }
 }
 
@@ -157,8 +159,14 @@ export function load(
 
       DeviceWatch.onDeviceConnected(() => {
         signal?.removeEventListener('abort', onAbort);
-        if (loadGeneration !== generation) { reject(new Error('Superseded by newer load()')); return; }
-        if (signal?.aborted) { reject(signal.reason); return; }
+        if (loadGeneration !== generation) {
+          reject(new Error('Superseded by newer load()'));
+          return;
+        }
+        if (signal?.aborted) {
+          reject(signal.reason);
+          return;
+        }
         doLoad().then(resolve).catch(reject);
       });
     }
