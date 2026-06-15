@@ -1,5 +1,5 @@
-import type { SubtitleEntry } from '../types';
 import { MESSAGE_TYPE, SOCKET_EVENT } from '../constants';
+import type { SubtitleEntry } from '../types';
 
 const mockSubtitleChunkPlay = jest.fn();
 const mockSubtitleChunkReset = jest.fn();
@@ -14,9 +14,9 @@ jest.mock('../apps/AppsSettings', () => ({
   getUserId: jest.fn(() => 'user1'),
 }));
 
+import * as MessageQueue from '../apps/MessageQueue';
 // MessageQueue and PercentArrayFilter are pure in-memory — use the real modules
 import * as RoomConnection from '../apps/RoomConnection';
-import * as MessageQueue from '../apps/MessageQueue';
 
 const makeSocket = () => ({
   on: jest.fn(),
@@ -40,7 +40,12 @@ describe('send() — routing', () => {
 
     RoomConnection.send(75, 500, subtitles);
 
-    expect(mockSubtitleChunkPlay).toHaveBeenCalledWith(500, subtitles, socket, 'room1');
+    expect(mockSubtitleChunkPlay).toHaveBeenCalledWith(
+      500,
+      subtitles,
+      socket,
+      'room1',
+    );
     expect(MessageQueue.getMessages('room1')).toEqual([]);
   });
 
@@ -74,15 +79,23 @@ describe('connect() / disconnect()', () => {
   it('registers a message handler on connect', () => {
     const socket = makeSocket();
     RoomConnection.connect(socket as any, 'room1');
-    expect(socket.on).toHaveBeenCalledWith(SOCKET_EVENT.MESSAGE, expect.any(Function));
+    expect(socket.on).toHaveBeenCalledWith(
+      SOCKET_EVENT.MESSAGE,
+      expect.any(Function),
+    );
   });
 
   it('emits room:leave and removes the message handler on disconnect', () => {
     const socket = makeSocket();
     RoomConnection.connect(socket as any, 'room1');
     RoomConnection.disconnect();
-    expect(socket.emit).toHaveBeenCalledWith(SOCKET_EVENT.ROOM_LEAVE, { room_name: 'room1' });
-    expect(socket.off).toHaveBeenCalledWith(SOCKET_EVENT.MESSAGE, expect.any(Function));
+    expect(socket.emit).toHaveBeenCalledWith(SOCKET_EVENT.ROOM_LEAVE, {
+      room_name: 'room1',
+    });
+    expect(socket.off).toHaveBeenCalledWith(
+      SOCKET_EVENT.MESSAGE,
+      expect.any(Function),
+    );
   });
 
   it('resets SubtitleChunkPlayer on disconnect', () => {
@@ -95,8 +108,9 @@ describe('connect() / disconnect()', () => {
 
 describe('incoming message handling', () => {
   function getMessageHandler(socket: ReturnType<typeof makeSocket>) {
-    return socket.on.mock.calls.find(([e]) => e === SOCKET_EVENT.MESSAGE)?.[1] as
-      (payload: unknown) => void;
+    return socket.on.mock.calls.find(
+      ([e]) => e === SOCKET_EVENT.MESSAGE,
+    )?.[1] as (payload: unknown) => void;
   }
 
   it('fires subscribers with percent and deviceName on device:position', () => {
@@ -122,7 +136,9 @@ describe('incoming message handling', () => {
     RoomConnection.subscribe(cb);
 
     const handler = getMessageHandler(socket);
-    expect(() => handler({ message_type: MESSAGE_TYPE.DEVICE_POSITION, data: null })).not.toThrow();
+    expect(() =>
+      handler({ message_type: MESSAGE_TYPE.DEVICE_POSITION, data: null }),
+    ).not.toThrow();
     expect(cb).not.toHaveBeenCalled();
     RoomConnection.unsubscribe(cb);
   });
@@ -132,7 +148,10 @@ describe('incoming message handling', () => {
     RoomConnection.connect(socket as any, 'room1');
 
     const handler = getMessageHandler(socket);
-    handler({ message_type: MESSAGE_TYPE.SYSTEM_PRESENCE, data: { action: 'join' } });
+    handler({
+      message_type: MESSAGE_TYPE.SYSTEM_PRESENCE,
+      data: { action: 'join' },
+    });
 
     expect(mockSubtitleChunkReset).toHaveBeenCalled();
   });

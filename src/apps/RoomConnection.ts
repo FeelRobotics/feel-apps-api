@@ -8,14 +8,14 @@
  *  - listen `message`  for incoming `device:position` from remote peers
  *  - listen `message`  with message_type `webshare:presence` for room join/leave events
  */
-import type { Socket } from "socket.io-client";
-import { MESSAGE_TYPE, SOCKET_EVENT } from "../constants";
-import * as debug from "../debug";
-import type { FecInboundMessage, SubtitleEntry } from "../types";
-import { getUserId } from "./AppsSettings";
-import { filterIntermediateValues } from "./PercentArrayFilter";
-import * as MessageQueue from "./MessageQueue";
-import * as SubtitleChunkPlayer from "./SubtitleChunkPlayer";
+import type { Socket } from 'socket.io-client';
+import { MESSAGE_TYPE, SOCKET_EVENT } from '../constants';
+import * as debug from '../debug';
+import type { FecInboundMessage, SubtitleEntry } from '../types';
+import { getUserId } from './AppsSettings';
+import * as MessageQueue from './MessageQueue';
+import { filterIntermediateValues } from './PercentArrayFilter';
+import * as SubtitleChunkPlayer from './SubtitleChunkPlayer';
 
 type DataCallback = (percent: number, deviceName?: string) => void;
 const dataCallbacks: DataCallback[] = [];
@@ -35,24 +35,26 @@ function onMessage(payload: FecInboundMessage): void {
   const { message_type, data } = payload;
 
   if (message_type === MESSAGE_TYPE.DEVICE_POSITION) {
-    if (data == null || typeof data !== "object") return;
+    if (data == null || typeof data !== 'object') return;
     const positionData = data as Record<string, unknown>;
-    if (positionData.what === "device_percent" && typeof positionData.payload === "number") {
+    if (
+      positionData.what === 'device_percent' &&
+      typeof positionData.payload === 'number'
+    ) {
       emitData(positionData.payload, positionData.from as string | undefined);
     }
     return;
   }
 
   if (message_type === MESSAGE_TYPE.SYSTEM_PRESENCE) {
-    if (data == null || typeof data !== "object") return;
+    if (data == null || typeof data !== 'object') return;
     const presenceData = data as Record<string, unknown>;
-    if (presenceData.action === "join") {
+    if (presenceData.action === 'join') {
       SubtitleChunkPlayer.reset();
     }
     return;
   }
 }
-
 
 function sendQueue(): void {
   if (!_socket || !roomId) return;
@@ -73,11 +75,11 @@ function sendQueue(): void {
     message_type: MESSAGE_TYPE.DEVICE_POSITION,
     data: {
       target: last.to || getUserId(),
-      what: "device_percent",
+      what: 'device_percent',
       payload: last.value,
     },
   };
-  debug.log("[RoomConnection] sending device:position", msg);
+  debug.log('[RoomConnection] sending device:position', msg);
   _socket.emit(SOCKET_EVENT.MESSAGE, msg, () => {
     MessageQueue.endSending(roomSnapshot);
     if (!MessageQueue.isEmpty(roomSnapshot)) {
@@ -108,7 +110,7 @@ export function send(
   subtitles: SubtitleEntry[],
 ): void {
   if (!_socket || !roomId) {
-    debug.warn("[RoomConnection] send called but socket/room not ready", {
+    debug.warn('[RoomConnection] send called but socket/room not ready', {
       socket: !!_socket,
       roomId,
     });

@@ -20,9 +20,9 @@ describe('SubtitleChunkPlayer — empty subtitles condition', () => {
     const socket = makeSocket();
     play(1000, [sub(500)], socket as any, 'room1'); // lastMessageTime = 1000
     socket.emit.mockClear();
-    play(0, [], socket as any, 'room1');            // stop → lastMessageTime = null
+    play(0, [], socket as any, 'room1'); // stop → lastMessageTime = null
     socket.emit.mockClear();
-    play(0, [sub(500)], socket as any, 'room1');    // null → not throttled → sends
+    play(0, [sub(500)], socket as any, 'room1'); // null → not throttled → sends
     expect(socket.emit).toHaveBeenCalledWith(
       'message',
       expect.objectContaining({ message_type: 'room:play' }),

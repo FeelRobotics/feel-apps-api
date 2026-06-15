@@ -25,7 +25,8 @@ export async function loadSubtitlesInfo(
   signal?: AbortSignal,
 ): Promise<SubtitlesResponse> {
   const id = parseInt(String(subtitlesId), 10);
-  if (isNaN(id)) throw new Error(`subtitlesId must be numeric, got: ${subtitlesId}`);
+  if (isNaN(id))
+    throw new Error(`subtitlesId must be numeric, got: ${subtitlesId}`);
   const params = new URLSearchParams();
   params.set('apptoken', settings.apptoken);
   if (externalUserId) params.set('external_user_id', externalUserId);
@@ -37,7 +38,7 @@ export async function loadSubtitlesInfo(
   const response = await fetch(url, { signal });
   if (!response.ok)
     throw new Error(`Failed to load subtitles: ${response.statusText}`);
-  const data = await response.json() as SubtitlesResponse;
+  const data = (await response.json()) as SubtitlesResponse;
   if (typeof data.text !== 'string')
     throw new Error('Subtitles API returned unexpected response shape');
   return data;

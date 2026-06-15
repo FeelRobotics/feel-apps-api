@@ -33,7 +33,7 @@ describe('Parser.parse', () => {
 
   it('parses object with underscore keys', () => {
     const result = parse('{some_key: 42}');
-    expect(result).toEqual({ 'some_key': 42 });
+    expect(result).toEqual({ some_key: 42 });
   });
 
   it('throws on completely invalid JSON', () => {

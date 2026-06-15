@@ -1,11 +1,17 @@
-import * as debug from "../debug";
-import * as DeviceWatch from "../DeviceWatch";
-import { getSocket } from "../FecSocket";
-import * as SubsSubs from "../subs/Subs";
-import type { SubtitleEntry } from "../types";
-import { getRoomName, resetApiUrl, setApiUrl, setRoomName, setUserId } from "./AppsSettings";
-import * as RoomConnection from "./RoomConnection";
-import * as Status from "./Status";
+import * as DeviceWatch from '../DeviceWatch';
+import * as debug from '../debug';
+import { getSocket } from '../FecSocket';
+import * as SubsSubs from '../subs/Subs';
+import type { SubtitleEntry } from '../types';
+import {
+  getRoomName,
+  resetApiUrl,
+  setApiUrl,
+  setRoomName,
+  setUserId,
+} from './AppsSettings';
+import * as RoomConnection from './RoomConnection';
+import * as Status from './Status';
 
 type DevicesChangedCallback = (devices: string[]) => void;
 
@@ -18,10 +24,10 @@ export function resetServerUrl(): void {
 }
 
 export function init(onDevicesChanged: DevicesChangedCallback | null): void {
-  debug.log("App.init");
+  debug.log('App.init');
 
   const socket = getSocket();
-  SubsSubs.setClientId(socket.id ?? "");
+  SubsSubs.setClientId(socket.id ?? '');
   Status.init(socket, onDevicesChanged);
   RoomConnection.connect(socket, getRoomName());
 }
@@ -30,8 +36,8 @@ export function destroy(): void {
   RoomConnection.disconnect();
   Status.disconnect();
   DeviceWatch.reset();
-  setUserId("");
-  setRoomName("");
+  setUserId('');
+  setRoomName('');
 }
 
 export function playSubtitle(
@@ -43,7 +49,7 @@ export function playSubtitle(
 }
 
 export function getMobileAppLaunchUrl(requestToken: string): string {
-  return "feelapp://authorize?token=" + encodeURIComponent(requestToken);
+  return 'feelapp://authorize?token=' + encodeURIComponent(requestToken);
 }
 
-export { Status as status, RoomConnection as data };
+export { RoomConnection as data, Status as status };
