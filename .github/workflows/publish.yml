@@ -55,12 +55,8 @@ jobs:
       - name: Build
         run: npm run build
 
-      # NPM_TOKEN must be a granular automation token scoped to this package,
-      # with an expiry date.
       - name: Publish
         run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Create GitHub Release
         env:
