@@ -19,7 +19,9 @@ describe('BillingSession', () => {
 
   it('joins the billing room on first play()', () => {
     BillingSession.play();
-    expect(mockEmit).toHaveBeenCalledWith(SOCKET_EVENT.ROOM_JOIN, { room_name: 'billing.sock1' });
+    expect(mockEmit).toHaveBeenCalledWith(SOCKET_EVENT.ROOM_JOIN, {
+      room_name: 'billing.sock1',
+    });
   });
 
   it('joins only once — second play() is a no-op', () => {
@@ -38,7 +40,9 @@ describe('BillingSession', () => {
 
   it('does not throw if socket is not initialised', () => {
     const { getSocket } = require('../FecSocket');
-    getSocket.mockImplementationOnce(() => { throw new Error('not init'); });
+    getSocket.mockImplementationOnce(() => {
+      throw new Error('not init');
+    });
     expect(() => BillingSession.play()).not.toThrow();
   });
 });

@@ -21,7 +21,11 @@ let lastMessageTime: number | null = null;
 function sendStop(socket: Socket, roomId: string): void {
   const data = { room: roomId, type: 'stop' as const, ver: 3 as const };
   debug.log('room:stop', data);
-  socket.emit(SOCKET_EVENT.MESSAGE, { room: roomId, message_type: MESSAGE_TYPE.ROOM_STOP, data });
+  socket.emit(SOCKET_EVENT.MESSAGE, {
+    room: roomId,
+    message_type: MESSAGE_TYPE.ROOM_STOP,
+    data,
+  });
 }
 
 function sendPlay(
@@ -38,7 +42,11 @@ function sendPlay(
     ver: 3 as const,
   };
   debug.log('room:play', data);
-  socket.emit(SOCKET_EVENT.MESSAGE, { room: roomId, message_type: MESSAGE_TYPE.ROOM_PLAY, data });
+  socket.emit(SOCKET_EVENT.MESSAGE, {
+    room: roomId,
+    message_type: MESSAGE_TYPE.ROOM_PLAY,
+    data,
+  });
 }
 
 export function play(

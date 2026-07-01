@@ -1,10 +1,10 @@
-export const DEFAULT_CONTROL_PLANE_API_URL = "https://api.feel-app.com";
-export const DEFAULT_FEC_URL = "https://fec.feelme.com";
+export const DEFAULT_CONTROL_PLANE_API_URL = 'https://api.feel-app.com';
+export const DEFAULT_FEC_URL = 'https://fec.feelme.com';
 
 let apiUrl = DEFAULT_CONTROL_PLANE_API_URL;
-let fecUrl = DEFAULT_FEC_URL;
-let userId = "";
-let roomName = "";
+const fecUrl = DEFAULT_FEC_URL;
+let userId = '';
+let roomName = '';
 
 export function getApiUrl(): string {
   return apiUrl;

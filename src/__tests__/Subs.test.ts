@@ -47,9 +47,9 @@ describe('handleVideoSeekEvent — seek detection (SEEK_DISTANCE = 2s)', () => {
   it('does not treat a small jump as a seek', () => {
     const Subs = fresh(true);
     Subs.init(settings, jest.fn());
-    Subs.play(0);             // previousPos = 0
+    Subs.play(0); // previousPos = 0
     mockPlayerStop.mockClear();
-    Subs.timeupdate(1.5);     // 1.5s jump — under threshold
+    Subs.timeupdate(1.5); // 1.5s jump — under threshold
     expect(mockPlayerStop).not.toHaveBeenCalled();
   });
 
@@ -59,7 +59,7 @@ describe('handleVideoSeekEvent — seek detection (SEEK_DISTANCE = 2s)', () => {
     Subs.play(0);
     mockPlayerStop.mockClear();
     mockPlayerPlay.mockClear();
-    Subs.timeupdate(5.0);     // 5s jump — above threshold
+    Subs.timeupdate(5.0); // 5s jump — above threshold
     expect(mockPlayerStop).toHaveBeenCalled();
     expect(mockPlayerPlay).toHaveBeenCalled();
   });
@@ -69,7 +69,7 @@ describe('handleVideoSeekEvent — seek detection (SEEK_DISTANCE = 2s)', () => {
     Subs.init(settings, jest.fn());
     // do NOT call play() — playing stays false
     mockPlayerPlay.mockClear();
-    Subs.timeupdate(5.0);     // seek detected, but wasPlaying = false
+    Subs.timeupdate(5.0); // seek detected, but wasPlaying = false
     expect(mockPlayerPlay).not.toHaveBeenCalled();
   });
 
@@ -78,7 +78,7 @@ describe('handleVideoSeekEvent — seek detection (SEEK_DISTANCE = 2s)', () => {
     Subs.init(settings, jest.fn());
     Subs.play(0);
     mockPlayerStop.mockClear();
-    Subs.timeupdate(2.0);     // exactly 2.0 — NOT a seek (> 2.0 required)
+    Subs.timeupdate(2.0); // exactly 2.0 — NOT a seek (> 2.0 required)
     expect(mockPlayerStop).not.toHaveBeenCalled();
   });
 
@@ -87,7 +87,7 @@ describe('handleVideoSeekEvent — seek detection (SEEK_DISTANCE = 2s)', () => {
     Subs.init(settings, jest.fn());
     Subs.play(0);
     mockPlayerStop.mockClear();
-    Subs.timeupdate(2.001);   // just above 2s — IS a seek
+    Subs.timeupdate(2.001); // just above 2s — IS a seek
     expect(mockPlayerStop).toHaveBeenCalled();
   });
 });
@@ -114,7 +114,7 @@ describe('timeupdate — buffering watchdog', () => {
     mockPlayerStop.mockClear();
     Subs.timeupdate(0.1);
     jest.advanceTimersByTime(500);
-    Subs.timeupdate(0.6);     // resets watchdog
+    Subs.timeupdate(0.6); // resets watchdog
     jest.advanceTimersByTime(500);
     expect(mockPlayerStop).not.toHaveBeenCalled();
   });

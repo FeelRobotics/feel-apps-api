@@ -35,7 +35,10 @@ export function play(positionMsec: number, onSubtitle: SubtitleCallback): void {
   }, timeout);
 }
 
-export function timeupdate(positionMsec: number, onSubtitle: SubtitleCallback): void {
+export function timeupdate(
+  positionMsec: number,
+  onSubtitle: SubtitleCallback,
+): void {
   if (!nextSubtitleTimeout) return; // not playing
   play(positionMsec, onSubtitle);
 }

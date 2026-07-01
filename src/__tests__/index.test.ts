@@ -38,22 +38,30 @@ beforeEach(() => jest.clearAllMocks());
 describe('init — parameter validation', () => {
   it('throws when feelSubsToken is empty', () => {
     const { init } = fresh();
-    expect(() => init('', 'fec-tok', 'user-1', 'room-1')).toThrow('feelSubsToken is required');
+    expect(() => init('', 'fec-tok', 'user-1', 'room-1')).toThrow(
+      'feelSubsToken is required',
+    );
   });
 
   it('throws when fecToken is empty', () => {
     const { init } = fresh();
-    expect(() => init('subs-tok', '', 'user-1', 'room-1')).toThrow('fecToken is required');
+    expect(() => init('subs-tok', '', 'user-1', 'room-1')).toThrow(
+      'fecToken is required',
+    );
   });
 
   it('throws when userId is empty', () => {
     const { init } = fresh();
-    expect(() => init('subs-tok', 'fec-tok', '', 'room-1')).toThrow('userId is required');
+    expect(() => init('subs-tok', 'fec-tok', '', 'room-1')).toThrow(
+      'userId is required',
+    );
   });
 
   it('throws when roomName is empty', () => {
     const { init } = fresh();
-    expect(() => init('subs-tok', 'fec-tok', 'user-1', '')).toThrow('roomName is required');
+    expect(() => init('subs-tok', 'fec-tok', 'user-1', '')).toThrow(
+      'roomName is required',
+    );
   });
 
   it('does not throw when all params are provided', () => {
@@ -65,17 +73,23 @@ describe('init — parameter validation', () => {
 describe('initSlider — parameter validation', () => {
   it('throws when fecToken is empty', () => {
     const { initSlider } = fresh();
-    expect(() => initSlider('', 'user-1', 'room-1')).toThrow('fecToken is required');
+    expect(() => initSlider('', 'user-1', 'room-1')).toThrow(
+      'fecToken is required',
+    );
   });
 
   it('throws when userId is empty', () => {
     const { initSlider } = fresh();
-    expect(() => initSlider('fec-tok', '', 'room-1')).toThrow('userId is required');
+    expect(() => initSlider('fec-tok', '', 'room-1')).toThrow(
+      'userId is required',
+    );
   });
 
   it('throws when roomName is empty', () => {
     const { initSlider } = fresh();
-    expect(() => initSlider('fec-tok', 'user-1', '')).toThrow('roomName is required');
+    expect(() => initSlider('fec-tok', 'user-1', '')).toThrow(
+      'roomName is required',
+    );
   });
 
   it('does not throw when all params are provided', () => {

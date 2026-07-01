@@ -1,10 +1,10 @@
-# feel-apps-api
+# @feelrobotics/feel-apps-api
 
 JavaScript/TypeScript library for real-time haptic feedback and device control in Feel Robotics applications.
 
 ## Overview
 
-`feel-apps-api` synchronizes video playback with haptic subtitle events and communicates with Feel haptic devices in real time over a Socket.IO connection to the Feel Exchange Center (FEC).
+`@feelrobotics/feel-apps-api` synchronizes video playback with haptic subtitle events and communicates with Feel haptic devices in real time over a Socket.IO connection to the Feel Exchange Center (FEC).
 
 ## Installation
 
@@ -12,27 +12,18 @@ JavaScript/TypeScript library for real-time haptic feedback and device control i
 npm install @feelrobotics/feel-apps-api
 ```
 
-## Build
-
-```bash
-npm run build
-```
-
-The library outputs ESM, CommonJS, and IIFE bundles. The IIFE global is `$feel`.
-
-| Endpoint | URL |
-|---|---|
-| API | api.feel-app.com |
-| Subtitles | api-subtitles.feel-app.com |
-| FEC | fec.feelme.com |
-
 ## Quick Start
 
 ```ts
 import { init, destroy, apps, subs } from '@feelrobotics/feel-apps-api'
 
-// Initialize with all tokens
-await init(feelSubsToken, fecToken, userId, roomName)
+// Initialize — tokens are provided by your backend
+await init(feelSubsToken, fecToken, userId, roomName, {
+  fetchToken: async () => {
+    const res = await fetch('/api/refresh-fec-token')
+    return (await res.json()).fec_token
+  },
+})
 
 // Load subtitles for a video
 await subs.load(videoId, subtitlesId, externalUserId)
@@ -66,21 +57,6 @@ Device control without subtitle support. Use `apps.playSubtitle(percent, 0, [])`
 #### `TokenRefreshOptions`
 Both `init` and `initSlider` accept an optional `tokenRefresh` object to keep the FEC connection alive past the token's 24 h TTL. The token is refreshed every 12 h.
 
-```ts
-import { init, type TokenRefreshOptions } from '@feelrobotics/feel-apps-api'
-
-await init(feelSubsToken, fecToken, userId, roomName, {
-  fetchToken: async () => {
-    const res = await fetch('/api/refresh-fec-token')
-    return (await res.json()).fec_token
-  },
-  onTokenError: (err) => {
-    // Called when fetchToken fails — e.g. force logout or show an error
-    console.error('Token refresh failed:', err)
-  },
-})
-```
-
 | Field | Type | Required | Description |
 |---|---|---|---|
 | `fetchToken` | `() => string \| Promise<string>` | yes | Returns a fresh FEC JWT |
@@ -94,9 +70,6 @@ setServers({ apps: 'https://...', subs: 'https://...' })
 
 #### `destroy()`
 Disconnect the socket and reset all internal state. Call this before re-initialising.
-
-#### `setDebug(enabled: boolean)`
-Enable or disable debug logging to the console.
 
 ---
 
@@ -127,8 +100,6 @@ Listen for device connection status changes.
 ```ts
 const onStatus = ({ online, devices }) => { ... }
 apps.status.subscribe(onStatus)
-
-// Clean up
 apps.status.unsubscribe(onStatus)
 ```
 
@@ -137,8 +108,6 @@ Listen for haptic position messages sent by peer devices.
 ```ts
 const onData = (percent, deviceName) => { ... }
 apps.data.subscribe(onData)
-
-// Clean up
 apps.data.unsubscribe(onData)
 ```
 
@@ -151,9 +120,7 @@ Fetch subtitle data for a video. Waits for a device to connect before loading if
 ```ts
 const controller = new AbortController()
 await subs.load(videoId, subtitleId, userId, '', { signal: controller.signal })
-
-// Cancel a pending load
-controller.abort()
+controller.abort() // cancel a pending load
 ```
 
 #### `subs.play(currentPosSec)`
@@ -170,8 +137,6 @@ Subscribe to subtitle fire events. The callback receives `percentValue` (0–100
 ```ts
 const onHaptic = (percent) => setIntensity(percent)
 subs.onSubtitleEvent(onHaptic)
-
-// Clean up
 subs.offSubtitleEvent(onHaptic)
 ```
 
@@ -180,10 +145,10 @@ subs.offSubtitleEvent(onHaptic)
 ## Development
 
 ```bash
+npm run build      # build the library
 npm run dev        # watch mode
 npm test           # run tests
 npm run lint       # lint with Biome
-npm run check      # lint + format check
 npm run check:fix  # auto-fix lint and format issues
 ```
 

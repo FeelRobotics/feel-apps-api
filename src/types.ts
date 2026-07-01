@@ -40,7 +40,7 @@ export interface DeviceStatusEvent {
 export interface SubtitleChunkMessage {
   src: string;
   subtitles: SubtitleEntry[];
-  type: "play" | "stop";
+  type: 'play' | 'stop';
   serverTime: number;
   ver: 3;
 }

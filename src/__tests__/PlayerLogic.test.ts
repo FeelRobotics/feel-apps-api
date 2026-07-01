@@ -1,11 +1,11 @@
+import type { SubtitleCallback } from '../subs/PlayerLogic';
 import {
+  getCurrentVideoPosition,
   play,
+  setSubtitles,
   stop,
   timeupdate,
-  setSubtitles,
-  getCurrentVideoPosition,
 } from '../subs/PlayerLogic';
-import type { SubtitleCallback } from '../subs/PlayerLogic';
 
 beforeEach(() => {
   jest.useFakeTimers();
