@@ -6,7 +6,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/feelrobotics/feel-apps-api.git"
+    "url": "git+https://github.com/FeelRobotics/feel-apps-api.git"
   },
   "bugs": {
     "url": "https://github.com/feelrobotics/feel-apps-api/issues"
