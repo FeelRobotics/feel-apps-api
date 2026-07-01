@@ -1,17 +1,22 @@
-name: Publish to npm
+name: Publish
 
 on:
   push:
-    branches:
-      - master
     tags:
       - "v*"
+
+permissions:
+  contents: read
+
 jobs:
   publish:
     runs-on: ubuntu-latest
+    # Configure this environment in repo settings with required reviewers so a
+    # tag push alone cannot publish without an approval step.
+    environment: npm-publish
     permissions:
-      contents: read
-      id-token: write
+      contents: write # required to create the GitHub Release
+      id-token: write # required for npm provenance
 
     steps:
       - name: Checkout
@@ -20,9 +25,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version: "20"
+          node-version: 24
           registry-url: "https://registry.npmjs.org"
-          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
@@ -30,8 +34,20 @@ jobs:
       - name: Audit dependencies
         run: npm audit --audit-level=high --omit=dev
 
+      - name: Check tag matches package version
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          V="$(node -p "require('./package.json').version")"
+          if [ "$V" != "$TAG" ]; then
+            echo "::error::package.json is at version $V but the tag is $TAG"
+            exit 1
+          fi
+
       - name: Lint
         run: npm run check
+
+      - name: Typecheck
+        run: npm run typecheck
 
       - name: Test
         run: npm test
@@ -39,7 +55,20 @@ jobs:
       - name: Build
         run: npm run build
 
+      # NPM_TOKEN must be a granular automation token scoped to this package,
+      # with an expiry date.
       - name: Publish
         run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          gh release create "$GITHUB_REF_NAME" \
+            --title "$GITHUB_REF_NAME" \
+            --verify-tag \
+            --generate-notes \
+            --notes "Published to npm: [\`@feelrobotics/feel-apps-api\`](https://www.npmjs.com/package/@feelrobotics/feel-apps-api/v/$VERSION)"

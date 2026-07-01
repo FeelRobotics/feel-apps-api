@@ -39,6 +39,7 @@
     "test": "jest",
     "lint": "biome lint ./src",
     "format": "biome format ./src --write",
+    "typecheck": "tsc --noEmit",
     "check": "biome check ./src",
     "check:fix": "biome check ./src --write"
   },
